@@ -24,19 +24,7 @@
                             </div>
                             <h1 style="margin-top: 16px; font-size: 36px; font-weight: bold;">MaMaH
                             </h1>
-                            <div style="margin-top: 32px; text-align: left;">
-                                <p style="font-size: 16px;"> Login sebagai Ibu Postpartum atau
-                                    Bidan?</p>
-                                <button type="button" class="btn btn-block btn-outline-dark"
-                                    style="font-size: 16px;">Unduh Aplikasi Android
-                                </button>
-                                <p style="font-size: 16px; margin-top: 16px;"> Login sebagai Tim
-                                    KIA?</p>
-                                <button type="button" class="btn btn-block btn-outline-dark"
-                                    style="font-size: 16px;">Tim Kesehatan Ibu dan Anak
-                                </button>
-                            </div>
-                            {{-- <form class="pt-3" method="POST">
+                            <form class="pt-3" method="POST">
                                 <div class="form-group">
                                     <input type="email" class="form-control" id="exampleInputEmail1"
                                         placeholder="Email">
@@ -46,13 +34,10 @@
                                         placeholder="Password">
                                 </div>
                                 <div class="mt-3">
-                                    <button type="submit" class="btn btn-block btn-primary"
+                                    <button type="submit" class="btn btn-block btn-success"
                                         style="font-weight: bold; font-size: 16px;">Masuk</button>
                                 </div>
-                                <div class="text-center mt-4 font-weight-light">
-                                    <a href="#" class="text-primary">Unduh Aplikasi Android</a>
-                                </div>
-                            </form> --}}
+                            </form>
                         </div>
                     </div>
                 </div>
