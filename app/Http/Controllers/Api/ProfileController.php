@@ -89,7 +89,7 @@ class ProfileController extends Controller
         ]);
 
         // Buat URL penuh untuk foto
-        $user->photo = $user->photo ? url('storage/' . $user->photo) : null;
+        $user->photo = $user->photo ? url('/storage/images/' . $user->photo) : null;
 
         return response()->json([
             'message' => 'Profil berhasil diperbarui.',
