@@ -88,10 +88,6 @@ class ProfileController extends Controller
             'photo'      => $photoFileName,
         ];
 
-<<<<<<< HEAD
-        // Buat URL penuh untuk foto
-        $user->photo = $user->photo ? url('/storage/images/' . $user->photo) : null;
-=======
         // Jika ada password baru
         if ($request->filled('password')) {
             $dataToUpdate['password'] = Hash::make($request->password);
@@ -110,7 +106,6 @@ class ProfileController extends Controller
 
         // Generate URL foto lengkap
         $user->photo = $user->photo ? url('storage/' . $user->photo) : null;
->>>>>>> ca9114d (update 6/22/2025)
 
         return response()->json([
             'status'  => 'success',
@@ -120,6 +115,7 @@ class ProfileController extends Controller
             ]
         ]);
     }
+    
 
 
 }
