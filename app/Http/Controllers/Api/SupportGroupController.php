@@ -12,27 +12,35 @@ use Illuminate\Validation\Rule;
 class SupportGroupController extends Controller
 {
     // Menampilkan semua grup dukungan
+
     public function index()
     {
-        // Ambil semua grup dengan nama pembuat
         $groups = SupportGroup::with('creator:id,name')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at','desc')
+            ->get()
+            ->map(function($group) {
+                $last = SupportGroupMessage::where('group_id', $group->id)
+                    ->latest()
+                    ->first();
+                return [
+                    'id'            => $group->id,
+                    'name'          => $group->name,
+                    'description'   => $group->description,
+                    'creator'       => $group->creator,
+                    'last_message'  => $last ? [
+                        'text'       => $last->message,
+                        'sender'     => $last->user->name,
+                        'timestamp'  => $last->created_at->toDateTimeString(),
+                    ] : null,
+                ];
+            });
 
-        // Tanggapi jika tidak ada grup
-        if ($groups->isEmpty()) {
-            return response()->json([
-                'message' => 'Belum ada grup dukungan yang tersedia.',
-                'data'    => []
-            ], 404);
-        }
-
-        // Tanggapi dengan daftar grup
         return response()->json([
-            'message' => 'Daftar grup dukungan berhasil diambil.',
+            'message' => 'Daftar grup berhasil diambil.',
             'data'    => $groups
         ]);
     }
+
 
     // Membuat atau memperbarui grup dukungan
     public function store(Request $request)
@@ -157,6 +165,8 @@ class SupportGroupController extends Controller
         $message->user_id  = Auth::id();
         $message->message  = $request->message;
         $message->save(); // Simpan ke DB
+
+        $message->load('user:id,name');
 
         return response()->json([
             'message' => $messageId ? 'Pesan berhasil diperbarui.' : 'Pesan berhasil dikirim.',

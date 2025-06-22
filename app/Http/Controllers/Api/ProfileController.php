@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -19,7 +20,7 @@ class ProfileController extends Controller
 
         // Buat URL lengkap untuk file foto (jika ada)
         $user->photo = $user->photo
-            ? URL::to('/') . '/storage/images/' . $user->photo
+            ? URL::to('/') . '/storage/' . $user->photo
             : null;
 
         // Kembalikan data user dengan URL foto yang bisa ditampilkan langsung
@@ -29,19 +30,19 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+   public function update(Request $request)
     {
-        // Ambil user yang sedang login
-        $user = Auth::user();
+        $user = $request->user(); // Menggunakan $request->user() agar konsisten dengan Laravel Sanctum
 
-        // Validasi input dari request
-        $request->validate([
+        // Validasi input
+        $validated = $request->validate([
             'name'     => 'nullable|string|max:255',
-            'email'    => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'phone'    => 'nullable|string|max:20',
             'address'  => 'nullable|string|max:255',
-            'photo'    => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
+            'birth_date' => 'nullable|date',
             'password' => 'nullable|string|min:6',
+            'photo'    => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'name.string'     => 'Nama harus berupa teks.',
             'name.max'        => 'Nama tidak boleh lebih dari 255 karakter.',
@@ -57,43 +58,68 @@ class ProfileController extends Controller
             'photo.mimes'     => 'Foto harus berformat jpeg, png, atau jpg.',
             'photo.max'       => 'Ukuran foto maksimal 2MB.',
             'password.min'    => 'Password minimal terdiri dari 6 karakter.',
+            'birth_date.date' => 'Tanggal lahir harus format tanggal.',
         ]);
 
-        // Inisialisasi variabel untuk nama file baru
+        // Siapkan path foto
         $photoFileName = $user->photo;
 
-        // Jika ada file foto baru diunggah
+        // Jika upload foto baru
         if ($request->hasFile('photo')) {
-            // Hapus file lama jika ada dan tersimpan di storage
-            if ($user->photo && Storage::disk('public')->exists('images/' . basename($user->photo))) {
-                Storage::disk('public')->delete('images/' . basename($user->photo));
+            // Hapus file lama jika ada
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                Storage::disk('public')->delete($user->photo);
             }
 
-            // Simpan file baru dengan nama acak
+            // Simpan foto baru
             $extension = $request->file('photo')->getClientOriginalExtension();
             $newFileName = Str::random(20) . '.' . $extension;
             $request->file('photo')->storeAs('images', $newFileName, 'public');
-
-            // Simpan nama file (tanpa 'storage/')
             $photoFileName = 'images/' . $newFileName;
         }
 
-        // Update data pengguna
-        $user->update([
-            'name'     => $request->name ?? $user->name,
-            'email'    => $request->email ?? $user->email,
-            'phone'    => $request->phone ?? $user->phone,
-            'address'  => $request->address ?? $user->address,
-            'photo'    => $photoFileName,
-            'password' => $request->filled('password') ? Hash::make($request->password) : $user->password,
-        ]);
+        // Siapkan data untuk update
+        $dataToUpdate = [
+            'name'       => $request->name ?? $user->name,
+            'email'      => $request->email ?? $user->email,
+            'phone'      => $request->phone ?? $user->phone,
+            'address'    => $request->address ?? $user->address,
+            'birth_date' => $request->birth_date ?? $user->birth_date,
+            'photo'      => $photoFileName,
+        ];
 
+<<<<<<< HEAD
         // Buat URL penuh untuk foto
         $user->photo = $user->photo ? url('/storage/images/' . $user->photo) : null;
+=======
+        // Jika ada password baru
+        if ($request->filled('password')) {
+            $dataToUpdate['password'] = Hash::make($request->password);
+        }
+
+        // Proses update
+        try {
+            $user->update($dataToUpdate);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal memperbarui profil.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+
+        // Generate URL foto lengkap
+        $user->photo = $user->photo ? url('storage/' . $user->photo) : null;
+>>>>>>> ca9114d (update 6/22/2025)
 
         return response()->json([
+            'status'  => 'success',
             'message' => 'Profil berhasil diperbarui.',
-            'user'    => $user
+            'data'    => [
+                'profile' => $user,
+            ]
         ]);
     }
+
+
 }

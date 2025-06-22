@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -62,36 +63,21 @@ class AuthController extends Controller
         ]);
     }
 
-    public function register(Request $request)
+   public function register(Request $request)
     {
-        // Validasi input dari pengguna saat registrasi
+        // Validasi input awal (tampilan pertama)
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role'     => 'required|in:ibu,bidan',
-            'photo'    => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'name.required'     => 'Nama wajib diisi.',
             'email.required'    => 'Email wajib diisi.',
+            'email.unique'      => 'Email sudah digunakan.',
             'password.required' => 'Kata sandi wajib diisi.',
             'role.required'     => 'Peran pengguna wajib dipilih.',
-            'photo.file'        => 'Foto harus berupa file.',
-            'photo.image'       => 'Foto harus berupa gambar.',
-            'photo.mimes'       => 'Format foto harus jpeg, jpg, atau png.',
-            'photo.max'         => 'Ukuran foto maksimal 2MB.',
         ]);
-
-        // Proses simpan file foto
-        $photoFilename = null;
-        if ($request->hasFile('photo')) {
-            // Generate nama file unik
-            $extension = $request->file('photo')->getClientOriginalExtension();
-            $photoFilename = Str::random(20) . '.' . $extension;
-
-            // Simpan file ke folder public/images
-            $request->file('photo')->storeAs('images', $photoFilename, 'public');
-        }
 
         // Buat user baru
         $user = User::create([
@@ -100,13 +86,12 @@ class AuthController extends Controller
             'password'    => Hash::make($request->password),
             'role'        => $request->role,
             'is_verified' => 1,
-            'photo'       => $photoFilename, // Hanya nama file yang disimpan di DB
         ]);
 
-        // Buat token autentikasi
+        // Buat token autentikasi Sanctum
         $token = $user->createToken('mobile-token')->plainTextToken;
 
-        // Kirim respon registrasi
+        // Kirim respon
         return response()->json([
             'message'      => 'Registrasi berhasil.',
             'access_token' => $token,
@@ -115,15 +100,58 @@ class AuthController extends Controller
                 'name'        => $user->name,
                 'email'       => $user->email,
                 'role'        => $user->role,
-                'phone'       => $user->phone,
-                'address'     => $user->address,
-                'photo'       => $user->photo
-                    ? url('storage/images/' . $user->photo)
-                    : null,
+                'phone'       => null,
+                'address'     => null,
+                'photo'       => null,
                 'is_verified' => $user->is_verified,
                 'created_at'  => $user->created_at,
                 'updated_at'  => $user->updated_at,
             ]
         ], 201);
     }
+    public function completeProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'phone'       => 'nullable|string|max:20',
+            'address'     => 'nullable|string|max:255',
+            'birth_date'  => 'nullable|date',
+            'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        // Handle upload foto
+        if ($request->hasFile('photo')) {
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
+        $path = $request->file('photo')->storeAs('images', $filename, 'public');
+        $user->photo = $path;
+    }
+
+    $user->phone = $request->phone ?? $user->phone;
+    $user->address = $request->address ?? $user->address;
+    $user->birth_date = $request->birth_date ?? $user->birth_date;
+
+    $user->save();
+
+    return response()->json([
+        'message' => 'Profil berhasil dilengkapi.',
+        'user'    => [
+            'id'        => $user->id,
+            'name'      => $user->name,
+            'email'     => $user->email,
+            'role'      => $user->role,
+            'phone'     => $user->phone,
+            'address'   => $user->address,
+            'birth_date'=> $user->birth_date,
+            'photo'     => $user->photo ? url('storage/' . $user->photo) : null,
+            'created_at'=> $user->created_at,
+            'updated_at'=> $user->updated_at,
+        ]
+    ]);
+}
+
 }

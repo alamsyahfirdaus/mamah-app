@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\ScreeningController;
 use App\Http\Controllers\Api\EducationController;
 use App\Http\Controllers\Api\SupportGroupController;
 use App\Http\Controllers\Api\ConsultationController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 // =====================
 // PUBLIC ROUTES
@@ -20,20 +22,34 @@ Route::post('/login', [AuthController::class, 'login']);       // Login dan dapa
 // PROTECTED ROUTES (dengan middleware sanctum)
 // =====================
 Route::middleware('auth:sanctum')->group(function () {
-
+    
+    // mengisi data userr
+    Route::post('/complete-profile', [AuthController::class, 'completeProfile']);
+    //
     // ---------------------
     // AUTH
     // ---------------------
     Route::post('/logout', [AuthController::class, 'logout']); // Logout dan hapus token
+
+    //mengirim data nama dan foto di bernda
+   Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    $user = $request->user();
+
+    $user->photo = $user->photo
+        ? URL::to('/') . '/storage/' . $user->photo
+        : null;
+
+    return response()->json($user);
+});
 
     // ---------------------
     // PROFILE
     // ---------------------
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show']);   // Tampilkan profil user login
-        Route::put('/', [ProfileController::class, 'update']); // Update profil user
+        Route::put('/update', [ProfileController::class, 'update']); // Update profil user
     });
-
+    
     // ---------------------
     // SKRINING
     // ---------------------
