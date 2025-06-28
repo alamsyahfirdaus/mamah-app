@@ -116,9 +116,9 @@ class ScreeningController extends Controller
     // Menentukan kategori risiko berdasarkan skor
     private function getCategory($score)
     {
-        if ($score >= 13) return 'tinggi';
-        if ($score >= 10) return 'sedang';
-        return 'rendah';
+        if ($score >= 13) return 'Tinggi';
+        if ($score >= 10) return 'Sedang';
+        return 'Rendah';
     }
 
     // Menampilkan hasil skrining milik pengguna tertentu (khusus untuk bidan)
