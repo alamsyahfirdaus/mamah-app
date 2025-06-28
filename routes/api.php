@@ -22,7 +22,7 @@ Route::post('/login', [AuthController::class, 'login']);       // Login dan dapa
 // PROTECTED ROUTES (dengan middleware sanctum)
 // =====================
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // mengisi data userr
     Route::post('/complete-profile', [AuthController::class, 'completeProfile']);
     //
@@ -32,15 +32,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']); // Logout dan hapus token
 
     //mengirim data nama dan foto di bernda
-   Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
-    $user = $request->user();
+    Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+        $user = $request->user();
 
-    $user->photo = $user->photo
-        ? URL::to('/') . '/storage/' . $user->photo
-        : null;
+        $user->photo = $user->photo
+            ? URL::to('/') . '/storage/' . $user->photo
+            : null;
 
-    return response()->json($user);
-});
+        return response()->json($user);
+    });
 
     // ---------------------
     // PROFILE
@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ProfileController::class, 'show']);   // Tampilkan profil user login
         Route::put('/update', [ProfileController::class, 'update']); // Update profil user
     });
-    
+
     // ---------------------
     // SKRINING
     // ---------------------
@@ -75,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------
     Route::prefix('groups')->group(function () {
         Route::get('/', [SupportGroupController::class, 'index']);             // Daftar grup
-        Route::post('/store', [SupportGroupController::class, 'store']);       // Buat atau update grup
+        Route::match(['post', 'put'], '/store', [SupportGroupController::class, 'store']); // Buat atau update grup
         Route::get('/{id}/show', [SupportGroupController::class, 'show']);     // Detail grup
         Route::delete('/{id}/delete', [SupportGroupController::class, 'destroyGroup']); // Hapus grup
         Route::post('/{id}/store', [SupportGroupController::class, 'sendMessage']);     // Kirim atau edit pesan
@@ -87,9 +87,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // KONSULTASI
     // ---------------------
     Route::prefix('consultations')->group(function () {
-        Route::get('/', [ConsultationController::class, 'index']);           // Daftar konsultasi
-        Route::post('/', [ConsultationController::class, 'store']);          // Kirim konsultasi
-        Route::get('/{id}', [ConsultationController::class, 'show']);        // Detail konsultasi + balasan
-        Route::post('/{id}/reply', [ConsultationController::class, 'reply']); // Balasan oleh bidan
+        Route::get('/', [ConsultationController::class, 'index']);            // Daftar konsultasi
+        Route::match(['post', 'put'], '/store', [ConsultationController::class, 'store']); // Kirim atau update konsultasi
+        Route::get('/{id}/show', [ConsultationController::class, 'show']);         // Detail konsultasi + balasan
+        Route::delete('/{id}/delete', [ConsultationController::class, 'destroy']); // Hapus konsultasi
+        Route::match(['post', 'put'], '/reply', [ConsultationController::class, 'reply']); // Balasan konsultasi
+        Route::delete('/reply/{replyId}/delete', [ConsultationController::class, 'deleteReply']); // Hapus balasan konsultasi
+        Route::get('/bidan', [ConsultationController::class, 'getDaftarBidan']);  // Daftar bidan
     });
 });

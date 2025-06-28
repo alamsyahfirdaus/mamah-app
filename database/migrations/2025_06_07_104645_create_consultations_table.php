@@ -20,13 +20,13 @@ return new class extends Migration
                 ->onUpdate('cascade');
 
             $table->foreignId('bidan_id') // Bidan yang menangani
-                ->comment('role_bidan')
+                ->comment('user_id')
                 ->constrained('users')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
 
             $table->string('topic', 255); // Topik konsultasi
-            $table->enum('status', ['terbuka', 'ditutup'])->default('terbuka'); // Status konsultasi
+            // $table->enum('status', ['terbuka', 'ditutup'])->default('terbuka'); // Status konsultasi
             $table->timestamps();
         });
     }
