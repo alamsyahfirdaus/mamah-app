@@ -28,7 +28,7 @@
                                 </a>
                             </div>
                             <div style="margin-top: 32px; text-align: left;">
-                                <p style="font-size: 16px;"> Login sebagai Ibu Postpartum atau
+                                <p style="font-size: 16px;"> Login sebagai Ibu atau
                                     Bidan?</p>
                                 <a href="" type="button" class="btn btn-block btn-outline-primary"
                                     style="font-size: 16px;">Unduh Aplikasi Android

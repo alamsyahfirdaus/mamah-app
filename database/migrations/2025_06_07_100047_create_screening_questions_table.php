@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedTinyInteger('question_no')->unique(); // Nomor urut pertanyaan (1-10)
             $table->text('question_text'); // Isi pertanyaan
+            $table->boolean('is_special')->default(false); // Apakah ini pertanyaan khusus?
             $table->timestamps();
         });
     }

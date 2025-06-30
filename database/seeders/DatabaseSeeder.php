@@ -30,5 +30,6 @@ class DatabaseSeeder extends Seeder
         $this->call(GroupMessageSeeder::class);
         $this->call(ConsultationSeeder::class);
         $this->call(ConsultationReplySeeder::class);
+        $this->call(ScreeningLevelsSeeder::class);
     }
 }

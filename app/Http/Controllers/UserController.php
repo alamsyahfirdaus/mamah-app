@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -13,15 +14,16 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('id', 'desc')->get();
+        $users = User::where('id', '!=', 1)
+            ->orderByDesc('id')
+            ->get();
 
-        $data = [
+        return view('user-index', [
             'title' => 'Pengguna',
             'users' => $users
-        ];
-
-        return view('user-index', $data);
+        ]);
     }
+
 
     public function create()
     {
@@ -37,10 +39,14 @@ class UserController extends Controller
         try {
             $userId = Crypt::decrypt($id);
         } catch (DecryptException $e) {
-            return redirect()->route('user.create');
+            return redirect()->back()->with('error', 'ID tidak valid.');
         }
 
-        $user = User::findOrFail($userId);
+        $user = User::find($userId);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
 
         $data = [
             'title' => 'Pengguna',
@@ -59,8 +65,7 @@ class UserController extends Controller
                 $userId = Crypt::decrypt($request->id);
             } catch (DecryptException $e) {
                 return redirect()->back()
-                    ->with('error', 'ID tidak valid.')
-                    ->withInput();
+                    ->with('error', 'ID tidak valid.');
             }
         }
 
@@ -95,7 +100,9 @@ class UserController extends Controller
         $user->name        = $request->name;
         $user->email       = $request->email;
         $user->phone       = $request->phone;
-        $user->birth_date  = $request->birth_date;
+        $user->birth_date = $request->birth_date
+            ? Carbon::createFromFormat('d/m/Y', $request->birth_date)->format('Y-m-d')
+            : null;
         $user->address     = $request->address;
         $user->role        = $request->role;
         $user->is_verified = 1;

@@ -5,10 +5,9 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Daftar {{ $title }}</h3>
+            <h4 class="card-title pt-1">Daftar {{ $title }}</h4>
             <div class="card-tools">
-                <a href="{{ route('user.create') }}" type="button" class="btn btn-tool" title="Tambah {{ $title }}">
-                    <i class="fas fa-plus"></i>
+                <a href="{{ route('user.create') }}" type="button" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i>
                 </a>
             </div>
         </div>
@@ -19,7 +18,7 @@
                         <th style="width: 5%;">No</th>
                         <th>Nama</th>
                         <th>Email</th>
-                        <th>No<span style="font-size: 6px; color: #fff;">_</span>HP</th>
+                        <th>No.<span style="font-size: 6px; color: #fff;">_</span>HP</th>
                         <th>Peran</th>
                         <th style="width: 5%;">Aksi</th>
                     </tr>
@@ -30,7 +29,7 @@
                             <td>{{ $i + 1 }}</td>
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
-                            <td>{{ $user->phone ?? '-' }}
+                            <td>{{ $user->phone ?? '-' }}</td>
                             <td>{{ Str::ucfirst($user->role) }}</td>
                             <td>
                                 <div class="btn-group">
@@ -41,10 +40,12 @@
                                     <div class="dropdown-menu dropdown-menu-right">
                                         <a class="dropdown-item"
                                             href="{{ route('user.edit', Crypt::encrypt($user->id)) }}">Edit</a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="javascript:void(0)"
-                                            data-action="{{ route('user.destroy', Crypt::encrypt($user->id)) }}"
-                                            onclick="deleteData(this)">Hapus</a>
+                                        @if ($user->id !== Auth::id())
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                                data-action="{{ route('user.delete', Crypt::encrypt($user->id)) }}"
+                                                onclick="deleteData(this)">Hapus</a>
+                                        @endif
                                     </div>
                                 </div>
                             </td>

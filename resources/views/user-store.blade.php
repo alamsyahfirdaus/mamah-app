@@ -5,7 +5,7 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">{{ isset($user) ? 'Edit' : 'Tambah' }} {{ $title }}</h3>
+            <h4 class="card-title">{{ isset($user) ? 'Edit' : 'Tambah' }} {{ $title }}</h4>
         </div>
         <div class="card-body">
             <form action="{{ route('user.store') }}" method="POST" id="form-data" enctype="multipart/form-data">
@@ -17,7 +17,7 @@
                 <div class="form-group">
                     <label for="name">Nama<small class="text-danger">*</small></label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror" name="name"
-                        id="name" placeholder="Nama Lengkap" autocomplete="off"
+                        id="name" placeholder="Masukkan Nama" autocomplete="off"
                         value="{{ old('name', $user->name ?? '') }}">
                     <span class="invalid-feedback" id="error-name">
                         @error('name')
@@ -28,7 +28,7 @@
                 <div class="form-group">
                     <label for="email">Email<small class="text-danger">*</small></label>
                     <input type="email" class="form-control @error('email') is-invalid @enderror" name="email"
-                        id="email" placeholder="Alamat Email" autocomplete="off"
+                        id="email" placeholder="Masukkan Email" autocomplete="off"
                         value="{{ old('email', $user->email ?? '') }}">
                     <span class="invalid-feedback" id="error-email">
                         @error('email')
@@ -37,9 +37,9 @@
                     </span>
                 </div>
                 <div class="form-group">
-                    <label for="phone">No HP</label>
+                    <label for="phone">No. HP</label>
                     <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone"
-                        id="phone" placeholder="08xxxxxxxxxx" autocomplete="off"
+                        id="phone" placeholder="Masukkan No. HP (Contoh: 08xxxxxxxxxx)" autocomplete="off"
                         value="{{ old('phone', $user->phone ?? '') }}">
                     <span class="invalid-feedback" id="error-phone">
                         @error('phone')
@@ -49,8 +49,10 @@
                 </div>
                 <div class="form-group">
                     <label for="birth_date">Tanggal Lahir</label>
-                    <input type="date" class="form-control @error('birth_date') is-invalid @enderror" name="birth_date"
-                        id="birth_date" value="{{ old('birth_date', $user->birth_date ?? '') }}">
+                    <input type="text"
+                        class="form-control datetimepicker-input @error('birth_date') is-invalid @enderror"
+                        name="birth_date" id="birth_date" data-toggle="datetimepicker" placeholder="Masukkan Tanggal Lahir"
+                        value="{{ old('birth_date', isset($user->birth_date) ? \Carbon\Carbon::parse($user->birth_date)->format('d/m/Y') : '') }}">
                     <span class="invalid-feedback" id="error-birth_date">
                         @error('birth_date')
                             {{ $message }}
@@ -69,7 +71,7 @@
                 </div>
                 <div class="form-group">
                     <label for="role">Peran<small class="text-danger">*</small></label>
-                    <select name="role" id="role" class="form-control @error('role') is-invalid @enderror">
+                    <select name="role" id="role" class="form-control select2 @error('role') is-invalid @enderror">
                         <option value="">-- Pilih Peran --</option>
                         @php
                             $roles = [
@@ -129,6 +131,7 @@
             if (role === '') {
                 isValid = false;
                 $('#role').addClass('is-invalid');
+                $('#role').next('.select2-container').find('.select2-selection').addClass('border border-danger');
                 $('#error-role').text('Peran wajib dipilih.');
             }
 
@@ -146,6 +149,7 @@
         $('[id][name]').on('keyup change', function() {
             const fieldId = $(this).attr('id');
             $(this).removeClass('is-invalid');
+            $(this).next('.select2-container').find('.select2-selection').removeClass('border border-danger');
             $('#error-' + fieldId).text('');
         });
     </script>
