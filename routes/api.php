@@ -90,9 +90,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ConsultationController::class, 'index']);            // Daftar konsultasi
         Route::match(['post', 'put'], '/store', [ConsultationController::class, 'store']); // Kirim atau update konsultasi
         Route::get('/{id}/show', [ConsultationController::class, 'show']);         // Detail konsultasi + balasan
-        Route::delete('/{id}/delete', [ConsultationController::class, 'destroy']); // Hapus konsultasi
         Route::match(['post', 'put'], '/reply', [ConsultationController::class, 'reply']); // Balasan konsultasi
         Route::delete('/reply/{replyId}/delete', [ConsultationController::class, 'deleteReply']); // Hapus balasan konsultasi
-        Route::get('/bidan', [ConsultationController::class, 'getDaftarBidan']);  // Daftar bidan
+        Route::delete('/{id}/delete', [ConsultationController::class, 'destroy']); // Hapus konsultasi
+        Route::get('/pasangan', [ConsultationController::class, 'getDaftarPasangan']);  // Daftar bidan
     });
 });
