@@ -15,22 +15,37 @@ class ProfileController extends Controller
 {
     public function show()
     {
-        // Ambil data user yang sedang login
-        $user = Auth::user();
+        // Ambil data user login beserta relasi district → city → province
+        $user = Auth::user()->load('district.city.province');
 
         // Buat URL lengkap untuk file foto (jika ada)
         $user->photo = $user->photo
             ? URL::to('/') . '/storage/' . $user->photo
             : null;
 
-        // Kembalikan data user dengan URL foto yang bisa ditampilkan langsung
+        // Siapkan nama lokasi lengkap dalam satu baris: Kecamatan, Kota, Provinsi
+        $districtName = null;
+        if ($user->district) {
+            $regionParts = [
+                $user->district->name ?? null,
+                $user->district->city->name ?? null,
+                $user->district->city->province->name ?? null
+            ];
+            $districtName = implode(', ', array_filter($regionParts));
+        }
+
+        // Konversi user menjadi array dan tambahkan field district_name
+        $userData = $user->toArray();
+        $userData['district_name'] = $districtName;
+
+        // Kembalikan data user
         return response()->json([
             'message' => 'Data profil berhasil diambil.',
-            'user'    => $user
+            'user'    => $userData,
         ]);
     }
 
-   public function update(Request $request)
+    public function update(Request $request)
     {
         $user = $request->user(); // Menggunakan $request->user() agar konsisten dengan Laravel Sanctum
 
@@ -115,7 +130,4 @@ class ProfileController extends Controller
             ]
         ]);
     }
-    
-
-
 }

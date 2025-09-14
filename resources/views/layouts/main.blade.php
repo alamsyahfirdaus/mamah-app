@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>MaMaH | @yield('title', 'Beranda')</title>
-    <link rel="shortcut icon" href="{{ asset('assets/logo-mamah.png') }}" />
+    <link rel="shortcut icon" href="{{ asset('assets/mamah.png') }}" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/admin/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -210,7 +210,7 @@
 
         <aside class="main-sidebar sidebar-dark-primary">
             <a href="" class="brand-link" style="background-color: #fff; color: #007bff;">
-                <img src="{{ asset('assets/logo-mamah.png') }}" alt="MaMaH" class="brand-image">
+                <img src="{{ asset('assets/mamah.png') }}" alt="MaMaH" class="brand-image rounded-circle">
                 <span class="brand-text" style="font-weight: bold;">MaMaH</span>
             </a>
 
@@ -218,7 +218,7 @@
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                         data-accordion="false">
-                        <li class="nav-header">MENU ADMINISTRATOR</li>
+                        <li class="nav-header">MATERNAL MENTAL HEALTH</li>
                         <li class="nav-item">
                             <a href="{{ route('dashboard') }}"
                                 class="nav-link {{ Request::segment(1) == 'dashboard' ? 'active' : '' }}">

@@ -23,9 +23,9 @@
                                     <img src="{{ asset('assets/mamah.png') }}" style="width: 100px; border-radius: 75%;"
                                         alt="MaMaH">
                                 </div>
-                                <a href="/"
+                                {{-- <a href="/"
                                     style="margin-top: 16px; font-size: 36px; font-weight: bold; color: #248afd; text-decoration: none;">MaMaH
-                                </a>
+                                </a> --}}
                             </div>
                             @if (session('message'))
                                 <div id="alert-message" class="alert p-3"

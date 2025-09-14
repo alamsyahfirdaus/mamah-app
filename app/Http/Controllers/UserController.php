@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DistrictModel;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -14,10 +15,12 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::where('id', '!=', 1)
+        $users = User::with([
+            'district.city.province'
+        ])
+            ->where('id', '!=', 1)
             ->orderByDesc('id')
             ->get();
-
         return view('user-index', [
             'title' => 'Pengguna',
             'users' => $users
@@ -28,7 +31,8 @@ class UserController extends Controller
     public function create()
     {
         $data = [
-            'title' => 'Pengguna',
+            'title'     => 'Pengguna',
+            'regions'   => DistrictModel::getRegionList(),
         ];
 
         return view('user-store', $data);
@@ -49,8 +53,9 @@ class UserController extends Controller
         }
 
         $data = [
-            'title' => 'Pengguna',
-            'user'  => $user,
+            'title'     => 'Pengguna',
+            'regions'   => DistrictModel::getRegionList(),
+            'user'      => $user,
         ];
 
         return view('user-store', $data);
@@ -77,22 +82,25 @@ class UserController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'phone'      => 'nullable|string|max:20',
-            'birth_date' => 'nullable|date',
-            'address'    => 'nullable|string',
-            'role'       => 'required|in:kia,ibu,bidan',
+            'phone'         => 'nullable|string|max:20',
+            'birth_date'    => 'nullable|date',
+            'address'       => 'nullable|string',
+            'role'          => 'required|in:kia,ibu,bidan',
+            'district_id'   => 'nullable|exists:districts,id|required_if:role,ibu,bidan',
         ], [
-            'name.required'        => 'Nama wajib diisi.',
-            'name.max'             => 'Nama tidak boleh lebih dari :max karakter.',
-            'email.required'       => 'Email wajib diisi.',
-            'email.email'          => 'Format email tidak valid.',
-            'email.max'            => 'Email tidak boleh lebih dari :max karakter.',
-            'email.unique'         => 'Email sudah digunakan oleh pengguna lain.',
-            'phone.max'            => 'Nomor HP tidak boleh lebih dari :max karakter.',
-            'birth_date.date'      => 'Format tanggal lahir tidak valid.',
-            'address.string'       => 'Alamat harus berupa teks.',
-            'role.required'        => 'Peran wajib dipilih.',
-            'role.in'              => 'Peran yang dipilih tidak valid.',
+            'name.required'             => 'Nama wajib diisi.',
+            'name.max'                  => 'Nama tidak boleh lebih dari :max karakter.',
+            'email.required'            => 'Email wajib diisi.',
+            'email.email'               => 'Format email tidak valid.',
+            'email.max'                 => 'Email tidak boleh lebih dari :max karakter.',
+            'email.unique'              => 'Email sudah digunakan oleh pengguna lain.',
+            'phone.max'                 => 'Nomor HP tidak boleh lebih dari :max karakter.',
+            'birth_date.date'           => 'Format tanggal lahir tidak valid.',
+            'address.string'            => 'Alamat harus berupa teks.',
+            'district_id.required_if'   => 'Kecamatan wajib dipilih jika peran adalah ibu atau bidan.',
+            'district_id.exists'        => 'Kecamatan yang dipilih tidak valid.',
+            'role.required'             => 'Peran wajib dipilih.',
+            'role.in'                   => 'Peran yang dipilih tidak valid.',
         ]);
 
         $user = $userId ? User::findOrFail($userId) : new User();
@@ -104,6 +112,7 @@ class UserController extends Controller
             ? Carbon::createFromFormat('d/m/Y', $request->birth_date)->format('Y-m-d')
             : null;
         $user->address     = $request->address;
+        $user->district_id = $request->district_id;
         $user->role        = $request->role;
         $user->is_verified = 1;
 

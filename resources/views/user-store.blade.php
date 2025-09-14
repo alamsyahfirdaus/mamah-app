@@ -60,16 +60,6 @@
                     </span>
                 </div>
                 <div class="form-group">
-                    <label for="address">Alamat</label>
-                    <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror"
-                        placeholder="Alamat Lengkap">{{ old('address', $user->address ?? '') }}</textarea>
-                    <span class="invalid-feedback" id="error-address">
-                        @error('address')
-                            {{ $message }}
-                        @enderror
-                    </span>
-                </div>
-                <div class="form-group">
                     <label for="role">Peran<small class="text-danger">*</small></label>
                     <select name="role" id="role" class="form-control select2 @error('role') is-invalid @enderror">
                         <option value="">-- Pilih Peran --</option>
@@ -93,6 +83,34 @@
                         @enderror
                     </span>
                 </div>
+                <div class="form-group">
+                    <label for="address">Alamat</label>
+                    <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror"
+                        placeholder="Alamat Lengkap">{{ old('address', $user->address ?? '') }}</textarea>
+                    <span class="invalid-feedback" id="error-address">
+                        @error('address')
+                            {{ $message }}
+                        @enderror
+                    </span>
+                </div>
+                <div class="form-group">
+                    <label for="district_id">Kecamatan<small class="text-danger">*</small></label>
+                    <select name="district_id" id="district_id"
+                        class="form-control select2 @error('district_id') is-invalid @enderror">
+                        <option value="">-- Pilih Kecamatan --</option>
+                        @foreach ($regions as $id => $region)
+                            <option value="{{ $id }}"
+                                {{ old('district_id', $user->district_id ?? '') == $id ? 'selected' : '' }}>
+                                {{ $region }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="invalid-feedback" id="error-district_id">
+                        @error('district_id')
+                            {{ $message }}
+                        @enderror
+                    </span>
+                </div>
             </form>
         </div>
         <div class="card-footer"
@@ -110,6 +128,7 @@
 
             let name = $('#name').val().trim();
             let email = $('#email').val().trim();
+            let district = $('#district_id').val().trim();
             let role = $('#role').val().trim();
 
             if (name === '') {
@@ -126,6 +145,14 @@
                 isValid = false;
                 $('#email').addClass('is-invalid');
                 $('#error-email').text('Format email tidak valid.');
+            }
+
+            if (district === '') {
+                isValid = false;
+                $('#district_id').addClass('is-invalid');
+                $('#district_id').next('.select2-container').find('.select2-selection').addClass(
+                    'border border-danger');
+                $('#error-district_id').text('Kecamatan wajib dipilih.');
             }
 
             if (role === '') {

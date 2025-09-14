@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>MaMaH</title>
+    <title>MaMaH | Maternal Mental Health</title>
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/ti-icons/css/themify-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/base/vendor.bundle.base.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/auth/css/style.css') }}">
@@ -23,21 +23,19 @@
                                     <img src="{{ asset('assets/mamah.png') }}" style="width: 100px; border-radius: 75%;"
                                         alt="MaMaH">
                                 </div>
-                                <a href=""
-                                    style="margin-top: 16px; font-size: 36px; font-weight: bold; color: #248afd; text-decoration: none;">MaMaH
-                                </a>
                             </div>
                             <div style="margin-top: 32px; text-align: left;">
-                                <p style="font-size: 16px;"> Login sebagai Ibu atau
-                                    Bidan?</p>
-                                <a href="" type="button" class="btn btn-block btn-outline-primary"
+                                <a href="" type="button" class="btn btn-block btn-primary"
                                     style="font-size: 16px;">Unduh Aplikasi Android
                                 </a>
-                                <p style="font-size: 16px; margin-top: 16px;"> Login sebagai Tim
-                                    KIA?</p>
+                                <br>
                                 <a href="{{ route('login') }}" type="button" class="btn btn-block btn-outline-primary"
                                     style="font-size: 16px;">Tim Kesehatan Ibu dan Anak
                                 </a>
+                            </div>
+                            <div class="text-center mt-4 font-weight-light">
+                                Butuh Bantuan? <a href="https://wa.me/6289693839624" target="_blank"
+                                    rel="noopener noreferrer">WhatsApp Admin</a>
                             </div>
                         </div>
                     </div>

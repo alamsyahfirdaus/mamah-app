@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class CityModel extends Model
+{
+    use HasFactory;
+
+    protected $table = 'cities';
+    protected $primaryKey = 'id';
+
+    protected $guarded = [];
+
+    // Relasi ke Province
+    public function province()
+    {
+        return $this->belongsTo(ProvinceModel::class, 'province_id');
+    }
+}

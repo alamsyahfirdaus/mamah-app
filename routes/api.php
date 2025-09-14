@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
+
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ScreeningController;
 use App\Http\Controllers\Api\EducationController;
 use App\Http\Controllers\Api\SupportGroupController;
 use App\Http\Controllers\Api\ConsultationController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\URL;
 
 // =====================
 // PUBLIC ROUTES
@@ -17,27 +18,23 @@ use Illuminate\Support\Facades\URL;
 // Registrasi dan login (tidak memerlukan token)
 Route::post('/register', [AuthController::class, 'register']); // Daftar akun
 Route::post('/login', [AuthController::class, 'login']);       // Login dan dapatkan token
+Route::get('/districts', [AuthController::class, 'getDistricts']); // Ambil daftar kecamatan, kota, provinsi
 
 // =====================
-// PROTECTED ROUTES (dengan middleware sanctum)
+// PROTECTED ROUTES (memerlukan token Sanctum)
 // =====================
 Route::middleware('auth:sanctum')->group(function () {
 
-    // mengisi data userr
-    Route::post('/complete-profile', [AuthController::class, 'completeProfile']);
-    //
     // ---------------------
     // AUTH
     // ---------------------
     Route::post('/logout', [AuthController::class, 'logout']); // Logout dan hapus token
+    Route::post('/complete-profile', [AuthController::class, 'completeProfile']); // Lengkapi profil user
 
-    //mengirim data nama dan foto di bernda
-    Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    // Mendapatkan data user login (nama & foto)
+    Route::get('/me', function (Request $request) {
         $user = $request->user();
-
-        $user->photo = $user->photo
-            ? URL::to('/') . '/storage/' . $user->photo
-            : null;
+        $user->photo = $user->photo ? URL::to('/') . '/storage/' . $user->photo : null;
 
         return response()->json($user);
     });
@@ -46,7 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // PROFILE
     // ---------------------
     Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'show']);   // Tampilkan profil user login
+        Route::get('/', [ProfileController::class, 'show']);        // Tampilkan profil user login
         Route::put('/update', [ProfileController::class, 'update']); // Update profil user
     });
 
@@ -54,10 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // SKRINING
     // ---------------------
     Route::prefix('screening')->group(function () {
-        Route::get('/questions', [ScreeningController::class, 'questions']); // Ambil soal EPDS
-        Route::post('/submit', [ScreeningController::class, 'submit']);      // Kirim hasil skrining
-        Route::get('/result', [ScreeningController::class, 'screeningResult']); // Hasil skrining user login
-        Route::get('/user/{id}', [ScreeningController::class, 'showUserResult']); // Hasil user by ID
+        Route::get('/questions', [ScreeningController::class, 'questions']);          // Ambil soal EPDS
+        Route::post('/submit', [ScreeningController::class, 'submit']);               // Kirim hasil skrining
+        Route::get('/result', [ScreeningController::class, 'screeningResult']);      // Hasil skrining user login
+        Route::get('/user/{id}', [ScreeningController::class, 'showUserResult']);    // Hasil skrining user by ID
         Route::get('/all/user', [ScreeningController::class, 'listUserWithScreening']); // Semua ibu + hasil
     });
 
@@ -65,21 +62,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // EDUKASI
     // ---------------------
     Route::prefix('education')->group(function () {
-        Route::get('/', [EducationController::class, 'index']);            // Daftar semua materi edukasi
-        Route::get('/{id}/show', [EducationController::class, 'show']);    // Detail materi edukasi
-        Route::get('/latest', [EducationController::class, 'latest']);     // Materi edukasi terbaru
+        Route::get('/', [EducationController::class, 'index']);        // Daftar semua materi edukasi
+        Route::get('/{id}/show', [EducationController::class, 'show']); // Detail materi edukasi
+        Route::get('/latest', [EducationController::class, 'latest']); // Materi edukasi terbaru
     });
 
     // ---------------------
     // SUPPORT GROUP / DISKUSI
     // ---------------------
     Route::prefix('groups')->group(function () {
-        Route::get('/', [SupportGroupController::class, 'index']);             // Daftar grup
-        Route::match(['post', 'put'], '/store', [SupportGroupController::class, 'store']); // Buat atau update grup
-        Route::get('/{id}/show', [SupportGroupController::class, 'show']);     // Detail grup
+        Route::get('/', [SupportGroupController::class, 'index']);                     // Daftar grup
+        Route::match(['post', 'put'], '/store', [SupportGroupController::class, 'store']); // Buat/update grup
+        Route::get('/{id}/show', [SupportGroupController::class, 'show']);            // Detail grup
         Route::delete('/{id}/delete', [SupportGroupController::class, 'destroyGroup']); // Hapus grup
-        Route::post('/{id}/store', [SupportGroupController::class, 'sendMessage']);     // Kirim atau edit pesan
-        Route::get('/{id}/messages', [SupportGroupController::class, 'messages']);      // List pesan grup
+        Route::post('/{id}/store', [SupportGroupController::class, 'sendMessage']);   // Kirim/edit pesan
+        Route::get('/{id}/messages', [SupportGroupController::class, 'messages']);    // List pesan grup
         Route::delete('/{groupId}/messages/{messageId}', [SupportGroupController::class, 'deleteMessage']); // Hapus pesan
     });
 
@@ -87,12 +84,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // KONSULTASI
     // ---------------------
     Route::prefix('consultations')->group(function () {
-        Route::get('/', [ConsultationController::class, 'index']);            // Daftar konsultasi
-        Route::match(['post', 'put'], '/store', [ConsultationController::class, 'store']); // Kirim atau update konsultasi
-        Route::get('/{id}/show', [ConsultationController::class, 'show']);         // Detail konsultasi + balasan
+        Route::get('/', [ConsultationController::class, 'index']);                    // Daftar konsultasi
+        Route::match(['post', 'put'], '/store', [ConsultationController::class, 'store']); // Kirim/update konsultasi
+        Route::get('/{id}/show', [ConsultationController::class, 'show']);           // Detail konsultasi + balasan
         Route::match(['post', 'put'], '/reply', [ConsultationController::class, 'reply']); // Balasan konsultasi
-        Route::delete('/reply/{replyId}/delete', [ConsultationController::class, 'deleteReply']); // Hapus balasan konsultasi
-        Route::delete('/{id}/delete', [ConsultationController::class, 'destroy']); // Hapus konsultasi
-        Route::get('/pasangan', [ConsultationController::class, 'getDaftarPasangan']);  // Daftar bidan
+        Route::delete('/reply/{replyId}/delete', [ConsultationController::class, 'deleteReply']); // Hapus balasan
+        Route::delete('/{id}/delete', [ConsultationController::class, 'destroy']);   // Hapus konsultasi
+        Route::get('/pasangan', [ConsultationController::class, 'getDaftarPasangan']); // Daftar bidan
     });
 });

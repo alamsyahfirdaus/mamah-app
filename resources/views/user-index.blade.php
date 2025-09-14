@@ -20,6 +20,7 @@
                         <th>Email</th>
                         <th>No.<span style="font-size: 6px; color: #fff;">_</span>HP</th>
                         <th>Peran</th>
+                        <th>Wilayah</th>
                         <th style="width: 5%;">Aksi</th>
                     </tr>
                 </thead>
@@ -30,7 +31,24 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->phone ?? '-' }}</td>
-                            <td>{{ Str::ucfirst($user->role) }}</td>
+                            <td>
+                                @if ($user->role == 'kia')
+                                    Admin (Tim KIA)
+                                @else
+                                    <a href="">{{ Str::ucfirst($user->role) }}</a>
+                                @endif
+                            </td>
+                            <td
+                                title="{{ $user->district
+                                    ? $user->district->name . ', ' . $user->district->city->name . ', ' . $user->district->city->province->name
+                                    : '-' }}">
+                                {{ $user->district
+                                    ? \Illuminate\Support\Str::limit(
+                                        $user->district->name . ', ' . $user->district->city->name . ', ' . $user->district->city->province->name,
+                                        20,
+                                    )
+                                    : '-' }}
+                            </td>
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-icon"

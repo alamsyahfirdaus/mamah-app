@@ -50,8 +50,15 @@ class User extends Authenticatable
         ];
     }
 
+    // Relasi ke ScreeningResult
     public function screeningResult()
     {
         return $this->hasOne(ScreeningResult::class, 'user_id');
+    }
+
+    // Relasi ke District
+    public function district()
+    {
+        return $this->belongsTo(DistrictModel::class, 'district_id');
     }
 }

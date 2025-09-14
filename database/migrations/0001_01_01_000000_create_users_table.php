@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['ibu', 'bidan', 'kia']);  // Peran pengguna
+            $table->enum('mother_type', ['hamil', 'nifas'])->nullable(); // Detail ibu
             $table->date('birth_date')->nullable();         // Tanggal lahir
             $table->string('phone')->nullable();            // Nomor telepon
             $table->text('address')->nullable();            // Alamat lengkap

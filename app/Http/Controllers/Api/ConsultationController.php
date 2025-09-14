@@ -12,127 +12,77 @@ use Illuminate\Support\Facades\URL;
 
 class ConsultationController extends Controller
 {
-   public function index()
-{
-    // Ambil user yang sedang login
-    $user = Auth::user();
+    public function index()
+    {
+        // Ambil user yang sedang login
+        $user = Auth::user();
 
-    // Ambil konsultasi milik user login, baik itu sebagai ibu atau bidan
-    $consultations = Consultation::with(['ibu:id,name', 'bidan:id,name'])
-        ->where(function ($query) use ($user) {
-            if ($user->role === 'ibu') {
-                $query->where('user_id', $user->id);
-            } elseif ($user->role === 'bidan') {
-                $query->where('bidan_id', $user->id);
-            }
-        })
-        ->orderBy('created_at', 'desc')
-        ->get();
+        // Ambil konsultasi milik user login, baik itu sebagai ibu atau bidan
+        $consultations = Consultation::with(['ibu:id,name', 'bidan:id,name'])
+            ->where(function ($query) use ($user) {
+                if ($user->role === 'ibu') {
+                    $query->where('user_id', $user->id);
+                } elseif ($user->role === 'bidan') {
+                    $query->where('bidan_id', $user->id);
+                }
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    $data = $consultations->map(function ($item) {
-        return [
-            'id'         => $item->id,
-            'topic'      => $item->topic,
-            'user_id'    => $item->ibu->id,
-            'name'       => $item->ibu->name,
-            'bidan_id'   => $item->bidan->id,
-            'bidan'      => $item->bidan->name,
-            'created_at' => $item->created_at->format('Y-m-d H:i'),
-            'last_reply' => $item->reply()->latest()->first()?->message,
-        ];
-    });
+        $data = $consultations->map(function ($item) {
+            return [
+                'id'         => $item->id,
+                'topic'      => $item->topic,
+                'user_id'    => $item->ibu->id,
+                'name'       => $item->ibu->name,
+                'bidan_id'   => $item->bidan->id,
+                'bidan'      => $item->bidan->name,
+                'created_at' => $item->created_at->format('Y-m-d H:i'),
+                'last_reply' => $item->reply()->latest()->first()?->message,
+            ];
+        });
 
-    return response()->json([
-        'message' => 'Daftar konsultasi berhasil diambil.',
-        'data'    => $data
-    ]);
-}
-
-
-    // public function getDaftarBidan()
-    // {
-    //     // Pastikan hanya ibu yang bisa mengakses
-    //     if (Auth::user()->role !== 'ibu') {
-    //         return response()->json([
-    //             'message' => 'Akses ditolak. Hanya pengguna dengan peran ibu yang dapat melihat daftar bidan.'
-    //         ], 403);
-    //     }
-
-    //     // Ambil semua user dengan role 'bidan'
-    //     $bidans = User::where('role', 'bidan')
-    //         ->select('id', 'name', 'email', 'photo') // hanya ambil field yang diperlukan
-    //         ->orderBy('name')
-    //         ->get();
-
-    //     if ($bidans->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'Belum ada bidan yang tersedia.',
-    //             'data' => []
-    //         ], 404);
-    //     }
-
-    //     // Format foto ke URL lengkap
-    //     $bidans->transform(function ($bidan) {
-    //         $bidan->photo = $bidan->photo
-    //             ? URL::to('/') . '/storage/images/' . $bidan->photo
-    //             : null;
-    //         return $bidan;
-    //     });
-
-    //     return response()->json([
-    //         'message' => 'Daftar bidan berhasil diambil.',
-    //         'data' => $bidans
-    //     ]);
-    // }
+        return response()->json([
+            'message' => 'Daftar konsultasi berhasil diambil.',
+            'data'    => $data
+        ]);
+    }
 
     public function getDaftarPasangan()
     {
         $user = Auth::user();
 
-        // Jika role ibu, ambil daftar bidan
-        if ($user->role === 'ibu') {
-            $data = User::where('role', 'bidan')
-                ->select('id', 'name', 'email', 'photo')
-                ->orderBy('name')
-                ->get();
+        // Tentukan role lawan (ibu <-> bidan)
+        $targetRole = $user->role === 'ibu' ? 'bidan' : ($user->role === 'bidan' ? 'ibu' : null);
 
-            $data->transform(function ($item) {
-                $item->photo = $item->photo
-                    ? URL::to('/') . '/storage/images/' . $item->photo
-                    : null;
-                return $item;
-            });
-
+        if (!$targetRole) {
             return response()->json([
-                'message' => 'Daftar bidan berhasil diambil.',
-                'data' => $data
-            ]);
+                'message' => 'Akses ditolak. Hanya ibu atau bidan yang dapat melihat daftar ini.'
+            ], 403);
         }
 
-        // Jika role bidan, ambil daftar ibu
-        if ($user->role === 'bidan') {
-            $data = User::where('role', 'ibu')
-                ->select('id', 'name', 'email', 'photo')
-                ->orderBy('name')
-                ->get();
+        // Query dasar: filter role
+        $query = User::where('role', $targetRole)->select('id', 'name', 'email', 'photo');
 
-            $data->transform(function ($item) {
-                $item->photo = $item->photo
-                    ? URL::to('/') . '/storage/images/' . $item->photo
-                    : null;
-                return $item;
-            });
-
-            return response()->json([
-                'message' => 'Daftar ibu berhasil diambil.',
-                'data' => $data
-            ]);
+        // Jika user punya district_id, filter berdasarkan district_id
+        if ($user->district_id) {
+            $query->where('district_id', $user->district_id);
         }
 
-        // Jika bukan ibu atau bidan
+        $data = $query->orderBy('name')->get();
+
+        // Transform foto menjadi URL lengkap
+        $data->transform(function ($item) {
+            $item->photo = $item->photo
+                ? URL::to('/') . '/storage/images/' . $item->photo
+                : null;
+            return $item;
+        });
+
         return response()->json([
-            'message' => 'Akses ditolak. Hanya ibu atau bidan yang dapat melihat daftar ini.'
-        ], 403);
+            'message' => "Daftar {$targetRole} berhasil diambil.",
+            'data' => $data
+        ]);
     }
 
     public function destroy($id)
@@ -167,70 +117,70 @@ class ConsultationController extends Controller
         ]);
     }
 
- public function store(Request $request)
-{
-    $user = Auth::user();
-    $id = $request->input('id');
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        $id = $request->input('id');
 
-    // Validasi tergantung role yang login
-    $rules = [
-        'id'       => 'nullable|integer|exists:consultations,id',
-        'question' => 'required|string|max:1000',
-    ];
+        // Validasi tergantung role yang login
+        $rules = [
+            'id'       => 'nullable|integer|exists:consultations,id',
+            'question' => 'required|string|max:1000',
+        ];
 
-    if ($user->role === 'ibu') {
-        $rules['bidan_id'] = 'required|exists:users,id';
-    } elseif ($user->role === 'bidan') {
-        $rules['ibu_id'] = 'required|exists:users,id';
-    } else {
-        return response()->json(['message' => 'Role tidak diizinkan.'], 403);
-    }
+        if ($user->role === 'ibu') {
+            $rules['bidan_id'] = 'required|exists:users,id';
+        } elseif ($user->role === 'bidan') {
+            $rules['ibu_id'] = 'required|exists:users,id';
+        } else {
+            return response()->json(['message' => 'Role tidak diizinkan.'], 403);
+        }
 
-    $request->validate($rules, [
-        'id.integer'        => 'ID konsultasi tidak valid.',
-        'id.exists'         => 'Data konsultasi tidak ditemukan.',
-        'bidan_id.required' => 'ID tujuan wajib diisi.',
-        'bidan_id.exists'   => 'User tidak ditemukan.',
-        'ibu_id.required'   => 'ID tujuan wajib diisi.',
-        'ibu_id.exists'     => 'User tidak ditemukan.',
-        'question.required' => 'Pertanyaan wajib diisi.',
-        'question.string'   => 'Pertanyaan harus berupa teks.',
-        'question.max'      => 'Pertanyaan terlalu panjang.',
-    ]);
+        $request->validate($rules, [
+            'id.integer'        => 'ID konsultasi tidak valid.',
+            'id.exists'         => 'Data konsultasi tidak ditemukan.',
+            'bidan_id.required' => 'ID tujuan wajib diisi.',
+            'bidan_id.exists'   => 'User tidak ditemukan.',
+            'ibu_id.required'   => 'ID tujuan wajib diisi.',
+            'ibu_id.exists'     => 'User tidak ditemukan.',
+            'question.required' => 'Pertanyaan wajib diisi.',
+            'question.string'   => 'Pertanyaan harus berupa teks.',
+            'question.max'      => 'Pertanyaan terlalu panjang.',
+        ]);
 
-    $consultation = $id
-        ? Consultation::where('id', $id)->where(function ($q) use ($user) {
-            if ($user->role === 'ibu') {
-                $q->where('user_id', $user->id);
-            } elseif ($user->role === 'bidan') {
-                $q->where('bidan_id', $user->id);
-            }
-        })->first()
-        : new Consultation;
+        $consultation = $id
+            ? Consultation::where('id', $id)->where(function ($q) use ($user) {
+                if ($user->role === 'ibu') {
+                    $q->where('user_id', $user->id);
+                } elseif ($user->role === 'bidan') {
+                    $q->where('bidan_id', $user->id);
+                }
+            })->first()
+            : new Consultation;
 
-    if ($id && !$consultation) {
+        if ($id && !$consultation) {
+            return response()->json([
+                'message' => 'Konsultasi tidak ditemukan atau tidak diizinkan.'
+            ], 404);
+        }
+
+        // Atur pasangan sesuai role yang login
+        if ($user->role === 'ibu') {
+            $consultation->user_id = $user->id;
+            $consultation->bidan_id = $request->bidan_id;
+        } elseif ($user->role === 'bidan') {
+            $consultation->user_id = $request->ibu_id;
+            $consultation->bidan_id = $user->id;
+        }
+
+        $consultation->topic = $request->question;
+        $consultation->save();
+
         return response()->json([
-            'message' => 'Konsultasi tidak ditemukan atau tidak diizinkan.'
-        ], 404);
+            'message' => $id ? 'Konsultasi diperbarui.' : 'Konsultasi berhasil dibuat.',
+            'data'    => $consultation
+        ], $id ? 200 : 201);
     }
-
-    // Atur pasangan sesuai role yang login
-    if ($user->role === 'ibu') {
-        $consultation->user_id = $user->id;
-        $consultation->bidan_id = $request->bidan_id;
-    } elseif ($user->role === 'bidan') {
-        $consultation->user_id = $request->ibu_id;
-        $consultation->bidan_id = $user->id;
-    }
-
-    $consultation->topic = $request->question;
-    $consultation->save();
-
-    return response()->json([
-        'message' => $id ? 'Konsultasi diperbarui.' : 'Konsultasi berhasil dibuat.',
-        'data'    => $consultation
-    ], $id ? 200 : 201);
-}
 
 
 
@@ -267,7 +217,7 @@ class ConsultationController extends Controller
         ]);
     }
 
-   
+
     public function reply(Request $request)
     {
         // Ambil ID balasan (jika ada) dan ID konsultasi dari request
@@ -351,6 +301,4 @@ class ConsultationController extends Controller
             'message' => 'Balasan berhasil dihapus.'
         ]);
     }
-   
-
 }
