@@ -261,7 +261,7 @@
                                     <a href="{{ route('screening.result') }}"
                                         class="nav-link {{ Request::is('screening/result') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Hasil Skrining</p>
+                                        <p>Riwayat Skrining</p>
                                     </a>
                                 </li>
                             </ul>
@@ -359,6 +359,11 @@
 
             $('.datetimepicker-input').datetimepicker({
                 format: 'DD/MM/YYYY'
+            });
+
+            $('.custom-file-input').on('change', function() {
+                let fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').addClass('selected').html(fileName);
             });
         });
 

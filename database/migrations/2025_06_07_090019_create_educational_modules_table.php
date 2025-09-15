@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('educational_modules', function (Blueprint $table) {
             $table->id();
             $table->string('title', 150); // Judul modul
-            $table->text('content'); // Isi materi edukasi
-            $table->string('video_url', 255)->nullable(); // Link video (opsional)
-            $table->string('image', 255)->nullable(); // Gambar
+            $table->enum('media_type', ['image', 'video', 'document'])->nullable(); // Jenis media
+            $table->string('file_name', 150)->nullable(); // Nama file media
+            $table->text('description')->nullable();; // Isi materi edukasi
             $table->foreignId('category_id')->nullable()->constrained('module_categories')->onDelete('set null')->onUpdate('cascade');
             $table->boolean('is_visible')->default(true); // Kontrol tampil/tidak
             $table->timestamps();

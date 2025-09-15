@@ -37,20 +37,20 @@ class ScreeningController extends Controller
     public function edit($id)
     {
         try {
-            $screeningId = Crypt::decrypt($id);
+            $decryptId = Crypt::decrypt($id);
         } catch (DecryptException $e) {
             return redirect()->back()->with('error', 'ID tidak valid.');
         }
 
-        $question = ScreeningQuestion::with('choices')->find($screeningId);
+        $query = ScreeningQuestion::with('choices')->find($decryptId);
 
-        if (!$question) {
-            return redirect()->back()->with('error', 'Data pertanyaan tidak ditemukan.');
+        if (!$query) {
+            return redirect()->back()->with('error', 'Data tidak ditemukan.');
         }
 
         return view('screening-index', [
             'title' => 'Skrining',
-            'data'  => $question,
+            'data'  => $query,
         ]);
     }
 

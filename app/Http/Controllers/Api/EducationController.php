@@ -21,7 +21,7 @@ class EducationController extends Controller
         if ($modules->isEmpty()) {
             return response()->json([
                 'message' => 'Belum ada materi edukasi yang tersedia.',
-                'data' => []
+                'data'    => []
             ], 404);
         }
 
@@ -30,10 +30,11 @@ class EducationController extends Controller
             return [
                 'id'          => $module->id,
                 'title'       => $module->title,
-                'image_url'   => $module->image
-                    ? URL::to('/') . '/storage/images/' . $module->image // URL lengkap gambar
+                'media_type'  => $module->media_type,
+                'file_url'    => $module->file_name
+                    ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
                     : null,
-                'video_url'   => $module->video_url,
+                'description' => $module->description,
                 'category_id' => $module->category_id,
                 'created_at'  => $module->created_at->format('Y-m-d'),
             ];
@@ -67,11 +68,11 @@ class EducationController extends Controller
             'data' => [
                 'id'          => $module->id,
                 'title'       => $module->title,
-                'content'     => $module->content,
-                'image_url'   => $module->image
-                    ? URL::to('/') . '/storage/images/' . $module->image
+                'media_type'  => $module->media_type,
+                'file_url'    => $module->file_name
+                    ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
                     : null,
-                'video_url'   => $module->video_url,
+                'description' => $module->description,
                 'category_id' => $module->category_id,
                 'created_at'  => $module->created_at->format('Y-m-d'),
                 'updated_at'  => $module->updated_at->format('Y-m-d'),
@@ -91,7 +92,7 @@ class EducationController extends Controller
         if (!$module) {
             return response()->json([
                 'message' => 'Belum ada materi edukasi terbaru yang tersedia.',
-                'data' => null
+                'data'    => null
             ], 404);
         }
 
@@ -101,11 +102,11 @@ class EducationController extends Controller
             'data' => [
                 'id'          => $module->id,
                 'title'       => $module->title,
-                'content'     => $module->content,
-                'image_url'   => $module->image
-                    ? URL::to('/') . '/storage/images/' . $module->image
+                'media_type'  => $module->media_type,
+                'file_url'    => $module->file_name
+                    ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
                     : null,
-                'video_url'   => $module->video_url,
+                'description' => $module->description,
                 'category_id' => $module->category_id,
                 'created_at'  => $module->created_at->format('Y-m-d'),
                 'updated_at'  => $module->updated_at->format('Y-m-d'),

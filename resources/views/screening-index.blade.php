@@ -3,8 +3,12 @@
 @section('title', $title)
 
 @php
-    $isListPage = Request::segment(1) === 'screening' && Request::segment(2) === null;
-    $isFormPage = Request::segment(2) === 'create' || Request::segment(3) === 'edit';
+    $segment1 = Request::segment(1);
+    $segment2 = Request::segment(2);
+    $segment3 = Request::segment(3);
+
+    $isListPage = $segment1 && !$segment2;
+    $isFormPage = $segment2 === 'create' || $segment3 === 'edit';
 @endphp
 
 @section('content')
@@ -15,7 +19,7 @@
             </h4>
             @if ($isListPage)
                 <div class="card-tools">
-                    <a href="{{ route('screening.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i></a>
+                    <a href="{{ route($segment1 . '.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i></a>
                 </div>
             @endif
         </div>
@@ -60,24 +64,24 @@
                                                 </button>
                                                 <div class="dropdown-menu dropdown-menu-right">
                                                     <a class="dropdown-item"
-                                                        href="{{ route('screening.edit', Crypt::encrypt($item->id)) }}">Edit</a>
+                                                        href="{{ route($segment1 . '.edit', Crypt::encrypt($item->id)) }}">Edit</a>
                                                     @if (!$loop->first)
                                                         <a class="dropdown-item"
-                                                            href="{{ route('screening.reorder', [Crypt::encrypt($item->id), 'up']) }}">Naikkan</a>
+                                                            href="{{ route($segment1 . '.reorder', [Crypt::encrypt($item->id), 'up']) }}">Naikkan</a>
                                                     @endif
                                                     @if (!$loop->last)
                                                         <a class="dropdown-item"
-                                                            href="{{ route('screening.reorder', [Crypt::encrypt($item->id), 'down']) }}">Turunkan</a>
+                                                            href="{{ route($segment1 . '.reorder', [Crypt::encrypt($item->id), 'down']) }}">Turunkan</a>
                                                     @endif
                                                     @if (!$item->is_special)
                                                         <a class="dropdown-item"
-                                                            href="{{ route('screening.special', Crypt::encrypt($item->id)) }}">
+                                                            href="{{ route($segment1 . '.special', Crypt::encrypt($item->id)) }}">
                                                             Tandai {{ $item->is_special ? 'Umum' : 'Khusus' }}
                                                         </a>
                                                     @endif
                                                     <div class="dropdown-divider"></div>
                                                     <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                                        data-action="{{ route('screening.delete', Crypt::encrypt($item->id)) }}"
+                                                        data-action="{{ route($segment1 . '.delete', Crypt::encrypt($item->id)) }}"
                                                         onclick="deleteData(this)">Hapus</a>
                                                 </div>
                                             </div>
@@ -89,7 +93,7 @@
                     @endif
                 </div>
                 <div class="tab-pane {{ $isFormPage ? 'active' : '' }}" id="form-tab">
-                    <form action="{{ route('screening.store') }}" method="POST" id="form-data"
+                    <form action="{{ route($segment1 . '.store') }}" method="POST" id="form-data"
                         enctype="multipart/form-data">
                         @csrf
                         @if (isset($data))
@@ -130,7 +134,7 @@
         @if ($isFormPage)
             <div class="card-footer"
                 style="background-color: #fff; padding-top: 0; border-bottom-left-radius: 0.25rem; border-bottom-right-radius: 0.25rem;">
-                <a href="{{ route('screening.index') }}" type="button" class="btn btn-default">Batal</a>
+                <a href="{{ route($segment1 . '.index') }}" type="button" class="btn btn-default">Batal</a>
                 <button type="button" id="btn-submit" class="btn btn-primary float-right">Simpan</button>
             </div>
         @endif
@@ -159,6 +163,7 @@
             });
 
             if (isValid) {
+                $(this).text('Memproses...').prop('disabled', true);
                 $('#form-data').submit();
             }
         });
@@ -177,6 +182,4 @@
             }
         });
     </script>
-
-
 @endsection

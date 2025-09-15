@@ -123,7 +123,6 @@ class AuthController extends Controller
             'address'     => 'nullable|string|max:255',
             'birth_date'  => 'nullable|date',
             'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'district_id' => 'required|exists:districts,id', // wajib dan valid
         ], [
             'phone.string'         => 'Nomor telepon harus berupa teks.',
             'phone.max'            => 'Nomor telepon maksimal 20 karakter.',
@@ -132,9 +131,7 @@ class AuthController extends Controller
             'birth_date.date'      => 'Tanggal lahir tidak valid.',
             'photo.image'          => 'File foto harus berupa gambar.',
             'photo.mimes'          => 'Format foto harus JPEG, PNG, atau JPG.',
-            'photo.max'            => 'Ukuran foto maksimal 2 MB.',
-            'district_id.required' => 'Kecamatan wajib dipilih.',
-            'district_id.exists'   => 'Kecamatan tidak valid.',
+            'photo.max'            => 'Ukuran foto maksimal 2 MB.'
         ]);
 
         // Handle upload foto
@@ -152,7 +149,6 @@ class AuthController extends Controller
         $user->phone       = $request->phone ?? $user->phone;
         $user->address     = $request->address ?? $user->address;
         $user->birth_date  = $request->birth_date ?? $user->birth_date;
-        $user->district_id = $request->district_id;
 
         $user->save();
 
