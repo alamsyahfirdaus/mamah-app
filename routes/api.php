@@ -62,9 +62,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // EDUKASI
     // ---------------------
     Route::prefix('education')->group(function () {
-        Route::get('/', [EducationController::class, 'index']);        // Daftar semua materi edukasi
-        Route::get('/{id}/show', [EducationController::class, 'show']); // Detail materi edukasi
-        Route::get('/latest', [EducationController::class, 'latest']); // Materi edukasi terbaru
+        // List semua materi edukasi (GET / POST) dengan filter category_id opsional
+        Route::match(['get', 'post'], '/', [EducationController::class, 'listEducationalModules']);
+        // Detail materi edukasi berdasarkan ID
+        Route::get('/{id}/show', [EducationController::class, 'show']);
+        // Materi edukasi terbaru
+        Route::get('/latest', [EducationController::class, 'latest']);
+        // List kategori materi edukasi
+        Route::get('/categories', [EducationController::class, 'listCategories']);
     });
 
     // ---------------------

@@ -72,6 +72,7 @@ class AuthController extends Controller
             'email'       => 'required|string|email|max:255|unique:users',
             'password'    => 'required|string|min:6',
             'role'        => 'required|in:ibu,bidan',
+            'district_id' => 'required|exists:districts,id', // validasi kecamatan
         ], [
             'name.required'        => 'Nama wajib diisi.',
             'email.required'       => 'Email wajib diisi.',
@@ -88,6 +89,7 @@ class AuthController extends Controller
             'email'       => $request->email,
             'password'    => Hash::make($request->password),
             'role'        => $request->role,
+            'district_id' => $request->district_id, // simpan district_id
             'is_verified' => 1,
         ]);
 
@@ -103,6 +105,7 @@ class AuthController extends Controller
                 'name'        => $user->name,
                 'email'       => $user->email,
                 'role'        => $user->role,
+                'district_id' => $user->district_id,
                 'phone'       => null,
                 'address'     => null,
                 'photo'       => null,
@@ -117,40 +120,45 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        // Validasi input dengan pesan dalam bahasa Indonesia
+        // Validasi input dengan pesan khusus bahasa Indonesia
         $request->validate([
             'phone'       => 'nullable|string|max:20',
             'address'     => 'nullable|string|max:255',
             'birth_date'  => 'nullable|date',
             'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'phone.string'         => 'Nomor telepon harus berupa teks.',
-            'phone.max'            => 'Nomor telepon maksimal 20 karakter.',
-            'address.string'       => 'Alamat harus berupa teks.',
-            'address.max'          => 'Alamat maksimal 255 karakter.',
-            'birth_date.date'      => 'Tanggal lahir tidak valid.',
-            'photo.image'          => 'File foto harus berupa gambar.',
-            'photo.mimes'          => 'Format foto harus JPEG, PNG, atau JPG.',
-            'photo.max'            => 'Ukuran foto maksimal 2 MB.'
+            'phone.string'        => 'Nomor telepon harus berupa teks.',
+            'phone.max'           => 'Nomor telepon maksimal 20 karakter.',
+            'address.string'      => 'Alamat harus berupa teks.',
+            'address.max'         => 'Alamat maksimal 255 karakter.',
+            'birth_date.date'     => 'Tanggal lahir tidak valid.',
+            'photo.image'         => 'File foto harus berupa gambar.',
+            'photo.mimes'         => 'Format foto harus JPEG, PNG, atau JPG.',
+            'photo.max'           => 'Ukuran foto maksimal 2 MB.',
         ]);
 
-        // Handle upload foto
+        // Handle upload foto jika ada
         if ($request->hasFile('photo')) {
+            // Hapus foto lama jika ada
             if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
 
+            // Simpan foto baru
             $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
             $path = $request->file('photo')->storeAs('images', $filename, 'public');
             $user->photo = $path;
         }
 
-        // Update data user
+        // Update field profil
         $user->phone       = $request->phone ?? $user->phone;
         $user->address     = $request->address ?? $user->address;
         $user->birth_date  = $request->birth_date ?? $user->birth_date;
 
         $user->save();
+
+        // Format tanggal konsisten di response JSON
+        $formatDate = fn($date) => $date ? $date->format('Y-m-d') : null;
 
         return response()->json([
             'message' => 'Profil berhasil dilengkapi.',
@@ -162,10 +170,10 @@ class AuthController extends Controller
                 'district_id' => $user->district_id,
                 'phone'       => $user->phone,
                 'address'     => $user->address,
-                'birth_date'  => $user->birth_date,
+                'birth_date'  => $formatDate($user->birth_date),
                 'photo'       => $user->photo ? url('storage/' . $user->photo) : null,
-                'created_at'  => $user->created_at,
-                'updated_at'  => $user->updated_at,
+                'created_at'  => $formatDate($user->created_at),
+                'updated_at'  => $formatDate($user->updated_at),
             ]
         ]);
     }
