@@ -49,9 +49,11 @@ class EducationController extends Controller
                 'id'          => $module->id,
                 'title'       => $module->title,
                 'media_type'  => $module->media_type,
-                'file_url'    => $module->file_name
-                    ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
-                    : null,
+                'file_url'    => $module->video_url
+                    ? $module->video_url
+                    : ($module->file_name
+                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        : null),
                 'description' => $module->description,
                 'category_id' => $module->category_id,
                 'created_at'  => $module->created_at->format('Y-m-d'),
@@ -89,9 +91,11 @@ class EducationController extends Controller
                 'id'          => $module->id,
                 'title'       => $module->title,
                 'media_type'  => $module->media_type,
-                'file_url'    => $module->file_name
-                    ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
-                    : null,
+                'file_url'    => $module->video_url
+                    ? $module->video_url
+                    : ($module->file_name
+                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        : null),
                 'description' => $module->description,
                 'category_id' => $module->category_id,
                 'created_at'  => $module->created_at->format('Y-m-d'),
@@ -125,9 +129,11 @@ class EducationController extends Controller
                 'id'          => $module->id,
                 'title'       => $module->title,
                 'media_type'  => $module->media_type,
-                'file_url'    => $module->file_name
-                    ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
-                    : null,
+                'file_url'    => $module->video_url
+                    ? $module->video_url
+                    : ($module->file_name
+                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        : null),
                 'description' => $module->description,
                 'category_id' => $module->category_id,
                 'created_at'  => $module->created_at->format('Y-m-d'),
