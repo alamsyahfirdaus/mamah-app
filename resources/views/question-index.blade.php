@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-header">
             <h4 class="card-title {{ $isListPage ? 'pt-1' : '' }}">
-                {{ $isListPage ? 'Daftar' : (isset($data) ? 'Edit' : 'Tambah') }} Pertanyaan
+                {{ $isListPage ? 'Daftar' : (isset($data) ? 'Edit' : 'Tambah') }} {{ $title }}
             </h4>
             @if ($isListPage)
                 <div class="card-tools">
@@ -39,9 +39,9 @@
                             <tbody>
                                 @foreach ($list as $i => $item)
                                     <tr>
-                                        <td class="{{ $item->is_special ? 'text-danger' : '' }}" title="Pertanyaan Khusus">
-                                            {{ $i + 1 }}</td>
                                         <td>
+                                            {{ $i + 1 }}</td>
+                                        <td class="{{ $item->is_special ? 'text-danger' : '' }}" title="Pertanyaan Khusus">
                                             {{ $item->question_text }}
                                         </td>
                                         <td>

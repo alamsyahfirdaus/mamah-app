@@ -13,7 +13,9 @@ class EducationController extends Controller
 {
     public function index()
     {
-        $materials = EducationalModule::orderBy('id', 'desc')->get();
+        $materials = EducationalModule::with('category')
+            ->orderBy('id', 'desc')
+            ->get();
 
         return view('education-index', [
             'title'    => 'Materi Edukasi',
@@ -24,9 +26,13 @@ class EducationController extends Controller
 
     public function create()
     {
+        $materials = EducationalModule::with('category')
+            ->orderBy('id', 'desc')
+            ->get();
+
         return view('education-index', [
             'title'      => 'Materi Edukasi',
-            'list'       => EducationalModule::orderBy('id', 'desc')->get(),
+            'list'       => $materials,
             'categories' => EducationCategory::orderBy('name', 'asc')->get()
         ]);
     }

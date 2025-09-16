@@ -20,7 +20,7 @@
                         <th>Email</th>
                         <th>No.<span style="font-size: 6px; color: #fff;">_</span>HP</th>
                         <th>Peran</th>
-                        <th>Wilayah</th>
+                        {{-- <th>Kecamatan</th> --}}
                         <th style="width: 5%;">Aksi</th>
                     </tr>
                 </thead>
@@ -35,10 +35,10 @@
                                 @if ($user->role == 'kia')
                                     Admin (Tim KIA)
                                 @else
-                                    <a href="">{{ Str::ucfirst($user->role) }}</a>
+                                    {{ Str::ucfirst($user->role) }}
                                 @endif
                             </td>
-                            <td
+                            {{-- <td
                                 title="{{ $user->district
                                     ? $user->district->name . ', ' . $user->district->city->name . ', ' . $user->district->city->province->name
                                     : '-' }}">
@@ -48,7 +48,7 @@
                                         20,
                                     )
                                     : '-' }}
-                            </td>
+                            </td> --}}
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-icon"
@@ -56,8 +56,13 @@
                                         <i class="fas fa-cogs"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item"
-                                            href="{{ route('user.edit', Crypt::encrypt($user->id)) }}">Edit</a>
+                                        @if ($user->role == 'kia')
+                                            <a class="dropdown-item"
+                                                href="{{ route('user.edit', Crypt::encrypt($user->id)) }}">Edit</a>
+                                        @else
+                                            <a class="dropdown-item"
+                                                href="{{ route('user.show', Crypt::encrypt($user->id)) }}">Lihat</a>
+                                        @endif
                                         @if ($user->id !== Auth::id())
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item text-danger" href="javascript:void(0)"

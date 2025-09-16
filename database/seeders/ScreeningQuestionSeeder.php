@@ -51,14 +51,14 @@ class ScreeningQuestionSeeder extends Seeder
             ],
             [
                 'question_no' => 6,
-                'question_text' => 'Hal-hal yang sebelumnya saya anggap mudah kini menjadi sulit.',
+                'question_text' => 'Hal-hal menumpuk sehingga saya merasa sulit untuk mengatasinya.',
                 'is_special' => false,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'question_no' => 7,
-                'question_text' => 'Saya merasa tidak mampu menghadapi hal-hal yang terjadi.',
+                'question_text' => 'Saya merasa sangat tidak bahagia sehingga sulit tidur.',
                 'is_special' => false,
                 'created_at' => now(),
                 'updated_at' => now()

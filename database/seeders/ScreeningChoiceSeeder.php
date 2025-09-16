@@ -14,20 +14,20 @@ class ScreeningChoiceSeeder extends Seeder
     public function run(): void
     {
         $choices = [
-            // Pertanyaan 1 & 2 (positif): skor dibalik
+            // Pertanyaan 1 & 2 (positif) → skor dibalik
             1 => [
-                ['label' => 'Sama sekali tidak', 'score' => 3],
-                ['label' => 'Jarang', 'score' => 2],
+                ['label' => 'Sering / Sama seperti biasanya', 'score' => 0],
                 ['label' => 'Kadang-kadang', 'score' => 1],
-                ['label' => 'Sering', 'score' => 0],
+                ['label' => 'Jarang', 'score' => 2],
+                ['label' => 'Tidak sama sekali', 'score' => 3],
             ],
             2 => [
-                ['label' => 'Hampir tidak pernah', 'score' => 3],
-                ['label' => 'Jarang', 'score' => 2],
+                ['label' => 'Sering / Sama seperti biasanya', 'score' => 0],
                 ['label' => 'Kadang-kadang', 'score' => 1],
-                ['label' => 'Sering', 'score' => 0],
+                ['label' => 'Jarang', 'score' => 2],
+                ['label' => 'Hampir tidak pernah', 'score' => 3],
             ],
-            // Pertanyaan 3–10 (negatif): skor normal
+            // Pertanyaan 3–10 (negatif) → skor normal
             3 => [
                 ['label' => 'Tidak pernah', 'score' => 0],
                 ['label' => 'Jarang', 'score' => 1],
@@ -72,13 +72,12 @@ class ScreeningChoiceSeeder extends Seeder
             ],
             10 => [
                 ['label' => 'Tidak pernah', 'score' => 0],
-                ['label' => 'Jarang', 'score' => 1],
-                ['label' => 'Sering', 'score' => 2],
-                ['label' => 'Sangat sering', 'score' => 3],
+                ['label' => 'Hampir tidak pernah', 'score' => 1],
+                ['label' => 'Kadang-kadang', 'score' => 2],
+                ['label' => 'Cukup sering', 'score' => 3],
             ],
         ];
 
-        // Simpan ke database
         foreach ($choices as $questionId => $options) {
             foreach ($options as $option) {
                 DB::table('screening_choices')->insert([

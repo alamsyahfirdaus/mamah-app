@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DistrictModel;
+use App\Models\PregnantMother;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -26,7 +27,6 @@ class UserController extends Controller
             'users' => $users
         ]);
     }
-
 
     public function create()
     {
@@ -83,7 +83,7 @@ class UserController extends Controller
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'phone'         => 'nullable|string|max:20',
-            'birth_date'    => 'nullable|date',
+            'birth_date'    => 'nullable|date_format:d/m/Y',
             'address'       => 'nullable|string',
             'role'          => 'required|in:kia,ibu,bidan',
             'district_id'   => 'nullable|exists:districts,id|required_if:role,ibu,bidan',
@@ -126,12 +126,52 @@ class UserController extends Controller
             ? 'Data pengguna berhasil diperbarui.'
             : 'Data pengguna baru berhasil ditambahkan.';
 
-        return redirect()->route('user.index')->with('success', $message);
+        return $userId && $user->role != 'kia'
+            ? redirect()->route('user.show', Crypt::encrypt($userId))->with('success', $message)
+            : redirect()->route('user.index')->with('success', $message);
     }
 
     public function show(string $id)
     {
-        //
+        try {
+            $userId = Crypt::decrypt($id);
+        } catch (DecryptException $e) {
+            return redirect()->back()->with('error', 'ID tidak valid.');
+        }
+
+        $user = User::with('district.city.province')->find($userId);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        $mother = PregnantMother::with('user')
+            ->where('user_id', $userId)
+            ->first();
+
+        $users = User::where('role', '!=', 'kia')
+            ->orderBy('name', 'asc')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                $mother = PregnantMother::where('user_id', $item->id)->first();
+                $status = $mother ? 'Ibu Hamil' : 'Ibu Nifas';
+
+                $role = $item->role == 'bidan' ? 'Ibu Bidan' : $status;
+
+                return [
+                    // $item->id => "{$item->name} ({$item->email}) - {$status}"
+                    $item->id => "{$item->name} ({$item->email}) - {$role}"
+                ];
+            });
+
+        $data = [
+            'title'  => 'Pengguna',
+            'users'  => $users,
+            'user'   => $user,
+            'mother' => $mother,
+        ];
+
+        return view('user-show', $data);
     }
 
     public function destroy(string $id)

@@ -32,6 +32,7 @@
                                 <tr>
                                     <th style="width: 5%;">No</th>
                                     <th>Judul<span style="font-size: 6px; color: #fff;">_</span>Materi</th>
+                                    <th>Kategori</th>
                                     <th>Deskripsi</th>
                                     <th>Status</th>
                                     <th style="width: 5%;">Aksi</th>
@@ -50,8 +51,9 @@
                                                 {{ $item->title }}
                                             </a>
                                         </td>
+                                        <td>{{ $item->category->name }}</td>
                                         <td title="{{ $item->description }}">
-                                            {{ Str::limit(strip_tags($item->description), 100) }}
+                                            {{ $item->description ? Str::limit(strip_tags($item->description), 100) : '-' }}
                                         </td>
                                         <td>
                                             <span class="badge badge-{{ $item->is_visible ? 'success' : 'secondary' }}">

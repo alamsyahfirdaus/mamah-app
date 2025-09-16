@@ -233,37 +233,50 @@
                                 <p>Pengguna</p>
                             </a>
                         </li>
-                        <li class="nav-item {{ Request::is('screening*') ? 'menu-open' : '' }}">
+                        <li
+                            class="nav-item {{ Request::is('question*') || Request::is('interpretation*') ? 'menu-open' : '' }}">
                             <a href="javascript:void(0)"
-                                class="nav-link {{ Request::is('screening*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-notes-medical"></i>
+                                class="nav-link {{ Request::is('question*') || Request::is('interpretation*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-edit"></i>
                                 <p>
-                                    Skrining
+                                    Kuesioner
                                     <i class="right fas fa-angle-left"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 @php
-                                    $isScreeningActive =
-                                        Request::is('screening') ||
-                                        Request::is('screening/create') ||
-                                        (Request::segment(1) === 'screening' && Request::segment(3) === 'edit');
+                                    $isQuestionActive =
+                                        Request::is('question') ||
+                                        Request::is('question/create') ||
+                                        (Request::segment(1) === 'question' && Request::segment(3) === 'edit');
+
+                                    $isInterpretationActive =
+                                        Request::is('interpretation') ||
+                                        Request::is('interpretation/create') ||
+                                        (Request::segment(1) === 'interpretation' && Request::segment(3) === 'edit');
                                 @endphp
 
                                 <li class="nav-item">
-                                    <a href="{{ route('screening.index') }}"
-                                        class="nav-link {{ $isScreeningActive ? 'active' : '' }}">
+                                    <a href="{{ route('question.index') }}"
+                                        class="nav-link {{ $isQuestionActive ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Daftar Pertanyaan</p>
+                                        <p>Pertanyaan</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a href="{{ route('interpretation.index') }}"
+                                        class="nav-link {{ $isInterpretationActive ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Interpretasi</p>
+                                    </a>
+                                </li>
+                                {{-- <li class="nav-item">
                                     <a href="{{ route('screening.result') }}"
                                         class="nav-link {{ Request::is('screening/result') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Riwayat Skrining</p>
                                     </a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </li>
                         <li class="nav-item">
@@ -411,7 +424,7 @@
                 icon: 'success',
                 title: 'Berhasil!',
                 text: "{{ session('success') }}",
-                timer: 2500,
+                timer: 2000,
                 timerProgressBar: true,
                 showConfirmButton: false
             });
@@ -424,7 +437,7 @@
                 icon: 'error',
                 title: 'Gagal!',
                 text: "{{ session('error') }}",
-                timer: 2500,
+                timer: 2000,
                 timerProgressBar: true,
                 showConfirmButton: false
             });

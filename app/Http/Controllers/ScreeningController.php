@@ -21,16 +21,16 @@ class ScreeningController extends Controller
             ->orderBy('question_no', 'asc')
             ->get();
 
-        return view('screening-index', [
-            'title' => 'Skrining',
+        return view('question-index', [
+            'title' => 'Pertanyaan',
             'list'  => $questions,
         ]);
     }
 
     public function create()
     {
-        return view('screening-index', [
-            'title' => 'Skrining',
+        return view('question-index', [
+            'title' => 'Pertanyaan',
         ]);
     }
 
@@ -48,8 +48,8 @@ class ScreeningController extends Controller
             return redirect()->back()->with('error', 'Data tidak ditemukan.');
         }
 
-        return view('screening-index', [
-            'title' => 'Skrining',
+        return view('question-index', [
+            'title' => 'Pertanyaan',
             'data'  => $query,
         ]);
     }

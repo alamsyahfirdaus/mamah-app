@@ -5,6 +5,7 @@ use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InterpretationController;
 use App\Http\Controllers\ScreeningController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -36,7 +37,7 @@ Route::middleware('auth')->group(function () {
         });
 
         // Skrining
-        Route::prefix('screening')->name('screening.')->middleware('auth')->group(function () {
+        Route::prefix('question')->name('question.')->middleware('auth')->group(function () {
             Route::get('/', [ScreeningController::class, 'index'])->name('index');
             Route::get('/create', [ScreeningController::class, 'create'])->name('create');
             Route::get('/{id}/edit', [ScreeningController::class, 'edit'])->name('edit');
@@ -45,6 +46,18 @@ Route::middleware('auth')->group(function () {
             Route::get('/reorder/{id}/{direction}', [ScreeningController::class, 'reorder'])->name('reorder');
             Route::get('/result', [ScreeningController::class, 'screeningResult'])->name('result');
             Route::get('/{id}/special', [ScreeningController::class, 'updateSpecial'])->name('special');
+        });
+
+        // Interpretasi
+        Route::prefix('interpretation')->name('interpretation.')->middleware('auth')->group(function () {
+            Route::get('/', [InterpretationController::class, 'index'])->name('index');
+            Route::get('/create', [InterpretationController::class, 'create'])->name('create');
+            Route::get('/{id}/edit', [InterpretationController::class, 'edit'])->name('edit');
+            Route::match(['post', 'put'], '/store', [InterpretationController::class, 'store'])->name('store');
+            Route::delete('/{id}/delete', [InterpretationController::class, 'destroy'])->name('delete');
+            Route::get('/reorder/{id}/{direction}', [InterpretationController::class, 'reorder'])->name('reorder');
+            Route::get('/result', [InterpretationController::class, 'screeningResult'])->name('result');
+            Route::get('/{id}/special', [InterpretationController::class, 'updateSpecial'])->name('special');
         });
 
         // Materi Edukasi
