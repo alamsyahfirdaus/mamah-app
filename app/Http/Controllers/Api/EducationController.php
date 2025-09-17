@@ -165,4 +165,46 @@ class EducationController extends Controller
             'data'    => $data
         ], 200);
     }
+
+    /**
+     * List semua video relaksasi (category_id = 1) yang visible.
+     * Bisa diakses via GET atau POST.
+     */
+    public function listRelaxationVideos()
+    {
+        // Query hanya materi relaksasi yang visible
+        $modules = EducationalModule::where('is_visible', true)
+            ->where('category_id', 1)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Jika tidak ada materi relaksasi
+        if ($modules->isEmpty()) {
+            return response()->json([
+                'message' => 'Belum ada video relaksasi yang tersedia.',
+                'data'    => []
+            ], 404);
+        }
+
+        // Format data untuk API
+        $data = $modules->map(function ($module) {
+            return [
+                'id'          => $module->id,
+                'title'       => $module->title,
+                'media_type'  => $module->media_type, // 'video' atau 'image'
+                'file_url'    => $module->video_url
+                    ? $module->video_url
+                    : ($module->file_name
+                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        : null),
+                'description' => $module->description,
+                'created_at'  => $module->created_at->format('Y-m-d'),
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Daftar video relaksasi berhasil diambil.',
+            'data'    => $data
+        ]);
+    }
 }

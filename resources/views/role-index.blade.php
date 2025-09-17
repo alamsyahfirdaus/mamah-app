@@ -23,6 +23,9 @@
                                     <img src="{{ asset('assets/mamah.png') }}" style="width: 100px; border-radius: 75%;"
                                         alt="MaMaH">
                                 </div>
+                                <a href="/"
+                                    style="margin-top: 16px; font-size: 36px; font-weight: bold; color:#80d6dd; text-decoration: none;">MaMaH
+                                </a>
                             </div>
                             <div style="margin-top: 32px; text-align: left;">
                                 <a href="" type="button" class="btn btn-block btn-primary"
@@ -35,7 +38,7 @@
                             </div>
                             <div class="text-center mt-4 font-weight-light">
                                 Butuh Bantuan? <a href="https://wa.me/6289693839624" target="_blank"
-                                    rel="noopener noreferrer">WhatsApp Admin</a>
+                                    rel="noopener noreferrer">WhatsApp</a>
                             </div>
                         </div>
                     </div>

@@ -15,19 +15,25 @@ class ModuleCategorySeeder extends Seeder
     {
         DB::table('module_categories')->insert([
             [
+                'name' => 'Relaksasi',
+                'description' => 'Materi dan panduan relaksasi untuk membantu ibu tetap tenang dan nyaman',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'name' => 'Kesehatan Mental',
                 'description' => 'Edukasi mengenai kesehatan mental ibu setelah melahirkan',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Informasi Seputar Kehamilan',
+                'name' => 'Seputar Kehamilan',
                 'description' => 'Materi dan informasi terkait kesehatan serta persiapan selama masa kehamilan',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Informasi Seputar Masa Nifas',
+                'name' => 'Seputar Masa Nifas',
                 'description' => 'Edukasi dan panduan kesehatan untuk ibu di masa nifas',
                 'created_at' => now(),
                 'updated_at' => now(),

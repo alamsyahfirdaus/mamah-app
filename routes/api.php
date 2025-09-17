@@ -18,7 +18,7 @@ use App\Http\Controllers\Api\ConsultationController;
 // Registrasi dan login (tidak memerlukan token)
 Route::post('/register', [AuthController::class, 'register']); // Daftar akun
 Route::post('/login', [AuthController::class, 'login']);       // Login dan dapatkan token
-Route::get('/districts', [AuthController::class, 'getDistricts']); // Ambil daftar kecamatan, kota, provinsi
+Route::get('/regions', [AuthController::class, 'getRegionList']); // Ambil daftar kecamatan, kota, provinsi
 
 // =====================
 // PROTECTED ROUTES (memerlukan token Sanctum)
@@ -71,6 +71,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // List kategori materi edukasi
         Route::get('/categories', [EducationController::class, 'listCategories']);
     });
+
+    // ---------------------
+    // RELAKSASI
+    // ---------------------
+    Route::match(['get', 'post'], '/relaxation', [EducationController::class, 'listRelaxationVideos']);
 
     // ---------------------
     // SUPPORT GROUP / DISKUSI

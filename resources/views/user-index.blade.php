@@ -20,7 +20,6 @@
                         <th>Email</th>
                         <th>No.<span style="font-size: 6px; color: #fff;">_</span>HP</th>
                         <th>Peran</th>
-                        {{-- <th>Kecamatan</th> --}}
                         <th style="width: 5%;">Aksi</th>
                     </tr>
                 </thead>
@@ -38,17 +37,6 @@
                                     {{ Str::ucfirst($user->role) }}
                                 @endif
                             </td>
-                            {{-- <td
-                                title="{{ $user->district
-                                    ? $user->district->name . ', ' . $user->district->city->name . ', ' . $user->district->city->province->name
-                                    : '-' }}">
-                                {{ $user->district
-                                    ? \Illuminate\Support\Str::limit(
-                                        $user->district->name . ', ' . $user->district->city->name . ', ' . $user->district->city->province->name,
-                                        20,
-                                    )
-                                    : '-' }}
-                            </td> --}}
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-icon"
@@ -61,7 +49,7 @@
                                                 href="{{ route('user.edit', Crypt::encrypt($user->id)) }}">Edit</a>
                                         @else
                                             <a class="dropdown-item"
-                                                href="{{ route('user.show', Crypt::encrypt($user->id)) }}">Lihat</a>
+                                                href="{{ route('user.show', Crypt::encrypt($user->id)) }}">Detail</a>
                                         @endif
                                         @if ($user->id !== Auth::id())
                                             <div class="dropdown-divider"></div>

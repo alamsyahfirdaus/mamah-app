@@ -14,13 +14,16 @@ class EducationController extends Controller
     public function index()
     {
         $materials = EducationalModule::with('category')
+            ->where('category_id', '!=', 1) // Tidak menampilkan category_id = 1
             ->orderBy('id', 'desc')
             ->get();
 
         return view('education-index', [
-            'title'    => 'Materi Edukasi',
-            'list'     => $materials,
-            'categories' => EducationCategory::orderBy('name', 'asc')->get()
+            'title'      => 'Materi Edukasi',
+            'list'       => $materials,
+            'categories' => EducationCategory::where('id', '!=', 1) // Filter kategori juga
+                ->orderBy('name', 'asc')
+                ->get()
         ]);
     }
 
@@ -33,7 +36,9 @@ class EducationController extends Controller
         return view('education-index', [
             'title'      => 'Materi Edukasi',
             'list'       => $materials,
-            'categories' => EducationCategory::orderBy('name', 'asc')->get()
+            'categories' => EducationCategory::where('id', '!=', 1)
+                ->orderBy('name', 'asc')
+                ->get()
         ]);
     }
 
@@ -54,7 +59,9 @@ class EducationController extends Controller
         return view('education-index', [
             'title' => 'Materi Edukasi',
             'data'  => $query,
-            'categories' => EducationCategory::orderBy('name', 'asc')->get()
+            'categories' => EducationCategory::where('id', '!=', 1)
+                ->orderBy('name', 'asc')
+                ->get()
         ]);
     }
 
@@ -76,18 +83,15 @@ class EducationController extends Controller
         $request->validate([
             'title'        => 'required|string|max:255',
             'category_id'  => 'required|exists:module_categories,id',
-            'media_type'   => 'required|in:image,video,video_url',
+            'media_type'   => 'required|in:image,video',
             'file_name'    => [
-                (!$moduleId && in_array($mediaType, ['image', 'video'])) ? 'required' : 'nullable',
+                (!$moduleId && $mediaType === 'image') ? 'required' : 'nullable',
                 'file',
-                'mimes:jpg,jpeg,png,mp4,pdf',
-                'max:51200',
+                'mimes:jpg,jpeg,png',
+                'max:5120', // 5MB cukup untuk gambar
             ],
-            'video_url'    => $mediaType === 'video_url' ? ['required', 'url'] : ['nullable'],
+            'video_url'    => $mediaType === 'video' ? ['required', 'url'] : ['nullable'],
             'description'  => 'nullable|string',
-        ], [
-            'video_url.required' => 'Link video wajib diisi.',
-            'video_url.url'      => 'Link video tidak valid.',
         ], [
             'title.required'       => 'Judul materi wajib diisi.',
             'title.string'         => 'Judul materi harus berupa teks.',
@@ -96,24 +100,26 @@ class EducationController extends Controller
             'category_id.exists'   => 'Kategori materi tidak valid.',
             'media_type.required'  => 'Jenis media wajib dipilih.',
             'media_type.in'        => 'Jenis media tidak valid.',
-            'file_name.required'   => 'File media wajib diupload.',
+
+            'file_name.required'   => 'Gambar wajib diupload.',
             'file_name.file'       => 'File tidak valid.',
-            'file_name.mimes'      => 'Format file harus jpg, jpeg, png, mp4, atau pdf.',
-            'file_name.max'        => 'Ukuran file maksimal 50 MB.',
-            'video_url.required'   => 'Link video wajib diisi.',
-            'video_url.url'        => 'Link video tidak valid.',
+            'file_name.mimes'      => 'Format file harus jpg, jpeg, atau png.',
+            'file_name.max'        => 'Ukuran gambar maksimal 5 MB.',
+
+            'video_url.required'   => 'Link YouTube wajib diisi.',
+            'video_url.url'        => 'Link YouTube tidak valid.',
         ]);
 
         $module = $moduleId ? EducationalModule::findOrFail($moduleId) : new EducationalModule();
 
         $module->title       = $request->title;
         $module->category_id = $request->category_id;
-        $module->media_type  = $request->video_url ? 'video' : $request->media_type;
+        $module->media_type  = $mediaType;
         $module->description = $request->description;
 
-        // Jika upload file baru
-        if ($request->hasFile('file_name')) {
-            // Hapus file lama jika ada
+        // Jika jenis media gambar
+        if ($mediaType === 'image' && $request->hasFile('file_name')) {
+            // Hapus file lama jika update
             if ($moduleId && $module->file_name) {
                 $oldPath = 'uploads/modules/' . $module->file_name;
                 if (Storage::disk('public')->exists($oldPath)) {
@@ -124,10 +130,14 @@ class EducationController extends Controller
             $extension = $request->file('file_name')->getClientOriginalExtension();
             $filename  = uniqid() . '.' . $extension;
             $request->file('file_name')->storeAs('uploads/modules', $filename, 'public');
+
             $module->file_name = $filename;
-            $module->video_url = null; // Kosongkan video_url jika upload file
-        } elseif ($mediaType === 'video_url') {
-            // Jika sebelumnya ada file_name, hapus filenya
+            $module->video_url = null; // pastikan kosong
+        }
+
+        // Jika jenis media link YouTube
+        if ($mediaType === 'video') {
+            // hapus file lama jika sebelumnya pernah upload gambar
             if ($module->file_name) {
                 $oldPath = 'uploads/modules/' . $module->file_name;
                 if (Storage::disk('public')->exists($oldPath)) {
@@ -166,5 +176,26 @@ class EducationController extends Controller
 
         $module->delete();
         return redirect()->route('education.index')->with('success', 'Materi berhasil dihapus.');
+    }
+
+    public function toggleVisibility($id)
+    {
+        try {
+            $moduleId = Crypt::decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            return redirect()->back()->with('error', 'ID tidak valid.');
+        }
+
+        $module = EducationalModule::find($moduleId);
+
+        if (!$module) {
+            return redirect()->back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $module->is_visible = !$module->is_visible;
+        $module->save();
+
+        $message = $module->is_visible ? 'Materi berhasil ditampilkan.' : 'Materi berhasil disembunyikan.';
+        return redirect()->back()->with('success', $message);
     }
 }

@@ -270,23 +270,56 @@
                                         <p>Interpretasi</p>
                                     </a>
                                 </li>
-                                {{-- <li class="nav-item">
-                                    <a href="{{ route('screening.result') }}"
-                                        class="nav-link {{ Request::is('screening/result') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Riwayat Skrining</p>
-                                    </a>
-                                </li> --}}
                             </ul>
                         </li>
-                        <li class="nav-item">
+                        <li
+                            class="nav-item {{ Request::is('education*') || Request::is('relaxation*') ? 'menu-open' : '' }}">
+                            <a href="javascript:void(0)"
+                                class="nav-link {{ Request::is('education*') || Request::is('relaxation*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-archive"></i>
+                                <p>
+                                    Materi
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                @php
+                                    $isEducationActive =
+                                        Request::is('education') ||
+                                        Request::is('education/create') ||
+                                        (Request::segment(1) === 'education' && Request::segment(3) === 'edit');
+
+                                    $isRelaxationActive =
+                                        Request::is('relaxation') ||
+                                        Request::is('relaxation/create') ||
+                                        (Request::segment(1) === 'relaxation' && Request::segment(3) === 'edit');
+                                @endphp
+
+                                <li class="nav-item">
+                                    <a href="{{ route('education.index') }}"
+                                        class="nav-link {{ $isEducationActive ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Edukasi</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('relaxation.index') }}"
+                                        class="nav-link {{ $isRelaxationActive ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Relaksasi</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        {{-- <li class="nav-item">
                             <a href="{{ route('education.index') }}"
                                 class="nav-link {{ Request::is('education*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-chalkboard-teacher"></i>
                                 <p>Materi Edukasi</p>
                             </a>
-                        </li>
-                        <li
+                        </li> --}}
+                        {{-- <li
                             class="nav-item {{ Request::is('discussion*') || Request::is('consultation*') ? 'menu-open' : '' }}">
                             <a href="javascript:void(0)"
                                 class="nav-link {{ Request::is('discussion*') || Request::is('consultation*') ? 'active' : '' }}">
@@ -312,8 +345,7 @@
                                     </a>
                                 </li>
                             </ul>
-                        </li>
-
+                        </li> --}}
                     </ul>
                 </nav>
             </div>

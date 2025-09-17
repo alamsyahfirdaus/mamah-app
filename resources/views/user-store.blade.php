@@ -94,19 +94,19 @@
                     </span>
                 </div>
                 <div class="form-group">
-                    <label for="district_id">Kecamatan<small class="text-danger">*</small></label>
-                    <select name="district_id" id="district_id"
-                        class="form-control select2 @error('district_id') is-invalid @enderror">
-                        <option value="">-- Pilih Kecamatan --</option>
-                        @foreach ($regions as $id => $region)
+                    <label for="village_id">Desa/Kelurahan<small class="text-danger">*</small></label>
+                    <select name="village_id" id="village_id"
+                        class="form-control select2 @error('village_id') is-invalid @enderror">
+                        <option value="">-- Pilih Desa/Kelurahan --</option>
+                        @foreach ($villages as $id => $item)
                             <option value="{{ $id }}"
-                                {{ old('district_id', $user->district_id ?? '') == $id ? 'selected' : '' }}>
-                                {{ $region }}
+                                {{ old('village_id', $user->village_id ?? '') == $id ? 'selected' : '' }}>
+                                {{ $item }}
                             </option>
                         @endforeach
                     </select>
-                    <span class="invalid-feedback" id="error-district_id">
-                        @error('district_id')
+                    <span class="invalid-feedback" id="error-village_id">
+                        @error('village_id')
                             {{ $message }}
                         @enderror
                     </span>
@@ -128,7 +128,7 @@
 
             let name = $('#name').val().trim();
             let email = $('#email').val().trim();
-            let district = $('#district_id').val().trim();
+            let district = $('#village_id').val().trim();
             let role = $('#role').val().trim();
 
             if (name === '') {
@@ -149,10 +149,10 @@
 
             if (district === '') {
                 isValid = false;
-                $('#district_id').addClass('is-invalid');
-                $('#district_id').next('.select2-container').find('.select2-selection').addClass(
+                $('#village_id').addClass('is-invalid');
+                $('#village_id').next('.select2-container').find('.select2-selection').addClass(
                     'border border-danger');
-                $('#error-district_id').text('Kecamatan wajib dipilih.');
+                $('#error-village_id').text('Desa/Kelurahan wajib dipilih.');
             }
 
             if (role === '') {

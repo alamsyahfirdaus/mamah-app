@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\DistrictModel;
 use App\Models\User;
+use App\Models\VillageModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -68,19 +69,19 @@ class AuthController extends Controller
     {
         // Validasi input awal (tampilan pertama)
         $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|string|email|max:255|unique:users',
-            'password'    => 'required|string|min:6',
-            'role'        => 'required|in:ibu,bidan',
-            'district_id' => 'required|exists:districts,id', // validasi kecamatan
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|string|email|max:255|unique:users',
+            'password'   => 'required|string|min:6',
+            'role'       => 'required|in:ibu,bidan',
+            'village_id' => 'required|exists:villages,id', // validasi desa/kelurahan
         ], [
-            'name.required'        => 'Nama wajib diisi.',
-            'email.required'       => 'Email wajib diisi.',
-            'email.unique'         => 'Email sudah digunakan.',
-            'password.required'    => 'Kata sandi wajib diisi.',
-            'role.required'        => 'Peran pengguna wajib dipilih.',
-            'district_id.required' => 'Kecamatan wajib dipilih.',
-            'district_id.exists'   => 'Kecamatan tidak valid.',
+            'name.required'       => 'Nama wajib diisi.',
+            'email.required'      => 'Email wajib diisi.',
+            'email.unique'        => 'Email sudah digunakan.',
+            'password.required'   => 'Kata sandi wajib diisi.',
+            'role.required'       => 'Peran pengguna wajib dipilih.',
+            'village_id.required' => 'Desa/Kelurahan wajib dipilih.',
+            'village_id.exists'   => 'Desa/Kelurahan tidak valid.',
         ]);
 
         // Buat user baru
@@ -89,7 +90,7 @@ class AuthController extends Controller
             'email'       => $request->email,
             'password'    => Hash::make($request->password),
             'role'        => $request->role,
-            'district_id' => $request->district_id, // simpan district_id
+            'village_id'  => $request->village_id, // simpan kelurahan
             'is_verified' => 1,
         ]);
 
@@ -101,17 +102,17 @@ class AuthController extends Controller
             'message'      => 'Registrasi berhasil.',
             'access_token' => $token,
             'user'         => [
-                'id'          => $user->id,
-                'name'        => $user->name,
-                'email'       => $user->email,
-                'role'        => $user->role,
-                'district_id' => $user->district_id,
-                'phone'       => null,
-                'address'     => null,
-                'photo'       => null,
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role,
+                'village_id' => $user->village_id,
+                'phone'      => null,
+                'address'    => null,
+                'photo'      => null,
                 'is_verified' => $user->is_verified,
-                'created_at'  => $user->created_at,
-                'updated_at'  => $user->updated_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
             ]
         ], 201);
     }
@@ -120,83 +121,79 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        // Validasi input dengan pesan khusus bahasa Indonesia
+        // Validasi input
         $request->validate([
-            'phone'       => 'nullable|string|max:20',
-            'address'     => 'nullable|string|max:255',
-            'birth_date'  => 'nullable|date',
-            'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'phone'      => 'nullable|string|max:20',
+            'address'    => 'nullable|string|max:255',
+            'birth_date' => 'nullable|date',
+            'photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'phone.string'        => 'Nomor telepon harus berupa teks.',
-            'phone.max'           => 'Nomor telepon maksimal 20 karakter.',
-            'address.string'      => 'Alamat harus berupa teks.',
-            'address.max'         => 'Alamat maksimal 255 karakter.',
-            'birth_date.date'     => 'Tanggal lahir tidak valid.',
-            'photo.image'         => 'File foto harus berupa gambar.',
-            'photo.mimes'         => 'Format foto harus JPEG, PNG, atau JPG.',
-            'photo.max'           => 'Ukuran foto maksimal 2 MB.',
+            'phone.string'   => 'Nomor telepon harus berupa teks.',
+            'phone.max'      => 'Nomor telepon maksimal 20 karakter.',
+            'address.string' => 'Alamat harus berupa teks.',
+            'address.max'    => 'Alamat maksimal 255 karakter.',
+            'birth_date.date' => 'Tanggal lahir tidak valid.',
+            'photo.image'    => 'File foto harus berupa gambar.',
+            'photo.mimes'    => 'Format foto harus JPEG, PNG, atau JPG.',
+            'photo.max'      => 'Ukuran foto maksimal 2 MB.',
         ]);
 
-        // Handle upload foto jika ada
+        // Handle upload foto
         if ($request->hasFile('photo')) {
-            // Hapus foto lama jika ada
             if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
 
-            // Simpan foto baru
             $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
             $path = $request->file('photo')->storeAs('images', $filename, 'public');
             $user->photo = $path;
         }
 
-        // Update field profil
-        $user->phone       = $request->phone ?? $user->phone;
-        $user->address     = $request->address ?? $user->address;
-        $user->birth_date  = $request->birth_date ?? $user->birth_date;
-
+        // Update profil
+        $user->phone      = $request->phone ?? $user->phone;
+        $user->address    = $request->address ?? $user->address;
+        $user->birth_date = $request->birth_date ?? $user->birth_date;
         $user->save();
 
-        // Format tanggal konsisten di response JSON
+        // Format tanggal
         $formatDate = fn($date) => $date ? $date->format('Y-m-d') : null;
 
         return response()->json([
             'message' => 'Profil berhasil dilengkapi.',
             'user'    => [
-                'id'          => $user->id,
-                'name'        => $user->name,
-                'email'       => $user->email,
-                'role'        => $user->role,
-                'district_id' => $user->district_id,
-                'phone'       => $user->phone,
-                'address'     => $user->address,
-                'birth_date'  => $formatDate($user->birth_date),
-                'photo'       => $user->photo ? url('storage/' . $user->photo) : null,
-                'created_at'  => $formatDate($user->created_at),
-                'updated_at'  => $formatDate($user->updated_at),
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role,
+                'village_id' => $user->village_id, // tetap dikirim biar bisa dipakai
+                'phone'      => $user->phone,
+                'address'    => $user->address,
+                'birth_date' => $formatDate($user->birth_date),
+                'photo'      => $user->photo ? url('storage/' . $user->photo) : null,
+                'created_at' => $formatDate($user->created_at),
+                'updated_at' => $formatDate($user->updated_at),
             ]
         ]);
     }
 
-    // Fungsi untuk menampilkan daftar region (kecamatan → kota → provinsi)
-    public function getDistricts()
+    public function getRegionList()
     {
-        // Ambil semua kecamatan beserta relasi kota dan provinsi
-        $districts = DistrictModel::with('city.province')
-            ->orderBy('name', 'asc') // Urutkan berdasarkan nama kecamatan
+        // Ambil semua desa/kelurahan beserta relasi kecamatan, kota, dan provinsi
+        $villages = VillageModel::with('district.city.province')
+            ->orderBy('name', 'asc') // urutkan berdasarkan nama desa/kelurahan
             ->get();
 
-        // Format data menjadi array untuk API
-        $regions = $districts->map(function ($district) {
+        // Format data untuk API
+        $regions = $villages->map(function ($village) {
             return [
-                'id'   => $district->id,
-                'name' => trim("{$district->name}, {$district->city->name}, {$district->city->province->name}", ', '),
+                'id'   => $village->id,
+                'name' => trim("{$village->name}, {$village->district->name}, {$village->district->city->name}, {$village->district->city->province->name}", ', '),
             ];
         });
 
-        // Kirim response JSON
+        // Response JSON
         return response()->json([
-            'message' => 'Daftar kecamatan berhasil diambil.',
+            'message' => 'Daftar desa/kelurahan berhasil diambil.',
             'data'    => $regions,
         ]);
     }

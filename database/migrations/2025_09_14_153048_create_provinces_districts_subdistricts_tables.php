@@ -43,6 +43,18 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->timestamps();
         });
+
+        // Tabel Desa/Kelurahan
+        Schema::create('villages', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique()->nullable();   // Kode desa/kelurahan
+            $table->string('name');                         // Nama desa/kelurahan
+            $table->foreignId('district_id')                // Relasi ke kecamatan
+                ->constrained('districts')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -50,6 +62,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('villages');
         Schema::dropIfExists('districts');
         Schema::dropIfExists('cities');
         Schema::dropIfExists('provinces');

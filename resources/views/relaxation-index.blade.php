@@ -31,8 +31,7 @@
                             <thead>
                                 <tr>
                                     <th style="width: 5%;">No</th>
-                                    <th>Judul<span style="font-size: 6px; color: #fff;">_</span>Materi</th>
-                                    <th>Kategori</th>
+                                    <th>Judul<span style="font-size: 6px; color: #fff;">_</span>Relaksasi</th>
                                     <th>Deskripsi</th>
                                     <th>Status</th>
                                     <th style="width: 5%;">Aksi</th>
@@ -50,7 +49,6 @@
                                                 {{ $item->title }}
                                             </a>
                                         </td>
-                                        <td>{{ $item->category->name }}</td>
                                         <td title="{{ $item->description }}">
                                             {{ $item->description ? Str::limit(strip_tags($item->description), 100) : '-' }}
                                         </td>
@@ -93,9 +91,9 @@
                             <input type="hidden" name="id" value="{{ Crypt::encrypt($data->id) }}">
                         @endif
                         <div class="form-group">
-                            <label for="title">Judul Materi<small class="text-danger">*</small></label>
+                            <label for="title">Judul Relaksasi<small class="text-danger">*</small></label>
                             <input type="text" class="form-control @error('title') is-invalid @enderror" name="title"
-                                id="title" placeholder="Masukkan Judul Materi" autocomplete="off"
+                                id="title" placeholder="Masukkan Judul Relaksasi" autocomplete="off"
                                 value="{{ old('title', $data->title ?? '') }}">
                             <span class="invalid-feedback d-block" id="error-title">
                                 @error('title')
@@ -104,64 +102,6 @@
                             </span>
                         </div>
                         <div class="form-group">
-                            <label for="category_id">Kategori Materi<small class="text-danger">*</small></label>
-                            <select name="category_id" id="category_id"
-                                class="form-control select2  @error('category_id') is-invalid @enderror">
-                                <option value="">-- Pilih Kategori Materi --</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}"
-                                        {{ old('category_id', $data->category_id ?? '') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <span class="invalid-feedback d-block" id="error-category_id">
-                                @error('category_id')
-                                    {{ $message }}
-                                @enderror
-                            </span>
-                        </div>
-                        @php
-                            $mediaOptions = [
-                                'image' => 'Gambar',
-                                'video' => 'Video',
-                            ];
-                            $mediaType = old('media_type', $data->media_type ?? '');
-                        @endphp
-
-                        <div class="form-group">
-                            <label for="media_type">Jenis Media<small class="text-danger">*</small></label>
-                            <select class="form-control select2 @error('media_type') is-invalid @enderror" name="media_type"
-                                id="media_type" autocomplete="off">
-                                <option value="">-- Pilih Jenis Media --</option>
-                                @foreach ($mediaOptions as $key => $label)
-                                    <option value="{{ $key }}" {{ $mediaType == $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <span class="invalid-feedback d-block" id="error-media_type">
-                                @error('media_type')
-                                    {{ $message }}
-                                @enderror
-                            </span>
-                        </div>
-                        <div class="form-group file-option {{ $mediaType === 'image' ? '' : 'd-none' }}">
-                            <label for="file_name">Upload Gambar<small class="text-danger">*</small></label>
-                            <div class="input-group">
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input @error('file_name') is-invalid @enderror"
-                                        name="file_name" id="file_name" accept="image/*">
-                                    <label class="custom-file-label" for="file_name">Pilih Gambar</label>
-                                </div>
-                            </div>
-                            <span class="invalid-feedback d-block" id="error-file_name">
-                                @error('file_name')
-                                    {{ $message }}
-                                @enderror
-                            </span>
-                        </div>
-                        <div class="form-group video-option {{ $mediaType === 'video' ? '' : 'd-none' }}">
                             <label for="video_url">Link YouTube<small class="text-danger">*</small></label>
                             <input type="url" class="form-control @error('video_url') is-invalid @enderror"
                                 name="video_url" id="video_url" placeholder="Masukkan Link YouTube"
@@ -172,7 +112,6 @@
                                 @enderror
                             </span>
                         </div>
-
                         <div class="form-group">
                             <label for="description">Deskripsi</label>
                             <textarea class="form-control @error('description') is-invalid @enderror" name="description" id="description"
@@ -212,67 +151,33 @@
     </div>
 
     <script>
-        $(function() {
-            $('#media_type').change(toggleMediaOptions);
-            toggleMediaOptions();
-        });
-
         $('#btn-submit').click(function() {
             let isValid = true;
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').text('');
-            $('.select2-selection').removeClass('border border-danger');
-
-            const mediaType = $('#media_type').val();
 
             if (!$('#title').val()?.trim()) {
                 isValid = false;
                 $('#title').addClass('is-invalid');
-                $('#error-title').text('Judul materi wajib diisi.');
+                $('#error-title').text('Judul relaksasi wajib diisi.');
             }
 
-            if (!$('#category_id').val()) {
+            const videoUrl = $('#video_url').val()?.trim();
+            if (!videoUrl) {
                 isValid = false;
-                $('#category_id').addClass('is-invalid');
-                $('#category_id').next('.select2-container').find('.select2-selection')
-                    .addClass('border border-danger');
-                $('#error-category_id').text('Kategori materi wajib dipilih.');
+                $('#video_url').addClass('is-invalid');
+                $('#error-video_url').text('Link YouTube wajib diisi.');
             }
 
-            if (!mediaType) {
-                isValid = false;
-                $('#media_type').addClass('is-invalid');
-                $('#media_type').next('.select2-container').find('.select2-selection')
-                    .addClass('border border-danger');
-                $('#error-media_type').text('Jenis media wajib dipilih.');
+            if (isValid) {
+                $('#form-data').submit();
             }
-
-            if (mediaType === 'image') {
-                if (!$('#file_name').val()) {
-                    isValid = false;
-                    $('#file_name').addClass('is-invalid');
-                    $('#error-file_name').text('Gambar wajib diupload.');
-                }
-            } else if (mediaType === 'video') {
-                const videoUrl = $('#video_url').val()?.trim();
-                if (!videoUrl) {
-                    isValid = false;
-                    $('#video_url').addClass('is-invalid');
-                    $('#error-video_url').text('Link YouTube wajib diisi.');
-                }
-            }
-
-            if (isValid) $('#form-data').submit();
         });
 
-        $('#form-data input, #form-data select, #form-data textarea').on('keyup change', function() {
+        // Hapus error saat input diubah
+        $('#form-data input, #form-data textarea').on('keyup change', function() {
             $(this).removeClass('is-invalid');
             $('#error-' + $(this).attr('id')).text('');
-
-            if ($(this).hasClass('select2-hidden-accessible')) {
-                $(this).next('.select2-container').find('.select2-selection')
-                    .removeClass('border border-danger');
-            }
         });
 
         function showEducation(el) {
@@ -311,23 +216,6 @@
 
             $("#educationContent").html(content);
             $("#educationModal").modal("show");
-        }
-
-        function toggleMediaOptions() {
-            const mediaType = $('#media_type').val();
-            const fileOption = $('.file-option');
-            const videoOption = $('.video-option');
-
-            if (mediaType === 'image') {
-                fileOption.removeClass('d-none');
-                videoOption.addClass('d-none');
-            } else if (mediaType === 'video') {
-                fileOption.addClass('d-none');
-                videoOption.removeClass('d-none');
-            } else {
-                fileOption.addClass('d-none');
-                videoOption.addClass('d-none');
-            }
         }
     </script>
 @endsection

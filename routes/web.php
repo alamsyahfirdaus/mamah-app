@@ -6,6 +6,7 @@ use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InterpretationController;
+use App\Http\Controllers\RelaxationController;
 use App\Http\Controllers\ScreeningController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +69,18 @@ Route::middleware('auth')->group(function () {
             Route::match(['post', 'put'], '/store', [EducationController::class, 'store'])->name('store'); // Simpan
             Route::delete('/{id}/delete', [EducationController::class, 'destroy'])->name('delete');        // Hapus
             Route::get('/{id}/show', [EducationController::class, 'show'])->name('show');     // (Opsional) Lihat detail materi
+            Route::get('/{id}/visibility', [EducationController::class, 'toggleVisibility'])->name('visibility'); // Toggle visibilitas
+        });
+
+        // Materi Relaksasi
+        Route::prefix('relaxation')->name('relaxation.')->middleware('auth')->group(function () {
+            Route::get('/', [RelaxationController::class, 'index'])->name('index');
+            Route::get('/create', [RelaxationController::class, 'create'])->name('create');
+            Route::get('/{id}/edit', [RelaxationController::class, 'edit'])->name('edit');
+            Route::match(['post', 'put'], '/store', [RelaxationController::class, 'store'])->name('store');
+            Route::delete('/{id}/delete', [RelaxationController::class, 'destroy'])->name('delete');
+            Route::get('/{id}/show', [RelaxationController::class, 'show'])->name('show');
+            Route::get('/{id}/visibility', [RelaxationController::class, 'toggleVisibility'])->name('visibility');
         });
 
         // Grup Diskusi

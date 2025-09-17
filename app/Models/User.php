@@ -56,9 +56,9 @@ class User extends Authenticatable
         return $this->hasOne(ScreeningResult::class, 'user_id');
     }
 
-    // Relasi ke District
-    public function district()
+    // Relasi ke Desa/Kelurahan (Village)
+    public function village()
     {
-        return $this->belongsTo(DistrictModel::class, 'district_id');
+        return $this->belongsTo(VillageModel::class, 'village_id');
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DistrictModel;
 use App\Models\PregnantMother;
 use App\Models\User;
+use App\Models\VillageModel;
 use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::with([
-            'district.city.province'
+            'village.district.city.province'
         ])
             ->where('id', '!=', 1)
             ->orderByDesc('id')
@@ -32,7 +32,7 @@ class UserController extends Controller
     {
         $data = [
             'title'     => 'Pengguna',
-            'regions'   => DistrictModel::getRegionList(),
+            'villages'   => VillageModel::getRegionList(),
         ];
 
         return view('user-store', $data);
@@ -54,7 +54,7 @@ class UserController extends Controller
 
         $data = [
             'title'     => 'Pengguna',
-            'regions'   => DistrictModel::getRegionList(),
+            'villages'  => VillageModel::getRegionList(),
             'user'      => $user,
         ];
 
@@ -75,49 +75,49 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => [
+            'name'        => 'required|string|max:255',
+            'email'       => [
                 'required',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'phone'         => 'nullable|string|max:20',
-            'birth_date'    => 'nullable|date_format:d/m/Y',
-            'address'       => 'nullable|string',
-            'role'          => 'required|in:kia,ibu,bidan',
-            'district_id'   => 'nullable|exists:districts,id|required_if:role,ibu,bidan',
+            'phone'       => 'nullable|string|max:20',
+            'birth_date'  => 'nullable|date_format:d/m/Y',
+            'address'     => 'nullable|string',
+            'role'        => 'required|in:kia,ibu,bidan',
+            'village_id'  => 'nullable|exists:villages,id|required_if:role,ibu,bidan',
         ], [
-            'name.required'             => 'Nama wajib diisi.',
-            'name.max'                  => 'Nama tidak boleh lebih dari :max karakter.',
-            'email.required'            => 'Email wajib diisi.',
-            'email.email'               => 'Format email tidak valid.',
-            'email.max'                 => 'Email tidak boleh lebih dari :max karakter.',
-            'email.unique'              => 'Email sudah digunakan oleh pengguna lain.',
-            'phone.max'                 => 'Nomor HP tidak boleh lebih dari :max karakter.',
-            'birth_date.date'           => 'Format tanggal lahir tidak valid.',
-            'address.string'            => 'Alamat harus berupa teks.',
-            'district_id.required_if'   => 'Kecamatan wajib dipilih jika peran adalah ibu atau bidan.',
-            'district_id.exists'        => 'Kecamatan yang dipilih tidak valid.',
-            'role.required'             => 'Peran wajib dipilih.',
-            'role.in'                   => 'Peran yang dipilih tidak valid.',
+            'name.required'        => 'Nama wajib diisi.',
+            'name.max'             => 'Nama tidak boleh lebih dari :max karakter.',
+            'email.required'       => 'Email wajib diisi.',
+            'email.email'          => 'Format email tidak valid.',
+            'email.max'            => 'Email tidak boleh lebih dari :max karakter.',
+            'email.unique'         => 'Email sudah digunakan oleh pengguna lain.',
+            'phone.max'            => 'Nomor HP tidak boleh lebih dari :max karakter.',
+            'birth_date.date'      => 'Format tanggal lahir tidak valid.',
+            'address.string'       => 'Alamat harus berupa teks.',
+            'village_id.required_if' => 'Kelurahan/Desa wajib dipilih jika peran adalah ibu atau bidan.',
+            'village_id.exists'    => 'Kelurahan/Desa yang dipilih tidak valid.',
+            'role.required'        => 'Peran wajib dipilih.',
+            'role.in'              => 'Peran yang dipilih tidak valid.',
         ]);
 
         $user = $userId ? User::findOrFail($userId) : new User();
 
-        $user->name        = $request->name;
-        $user->email       = $request->email;
-        $user->phone       = $request->phone;
+        $user->name       = $request->name;
+        $user->email      = $request->email;
+        $user->phone      = $request->phone;
         $user->birth_date = $request->birth_date
             ? Carbon::createFromFormat('d/m/Y', $request->birth_date)->format('Y-m-d')
             : null;
-        $user->address     = $request->address;
-        $user->district_id = $request->district_id;
-        $user->role        = $request->role;
+        $user->address    = $request->address;
+        $user->village_id = $request->village_id; // pakai kelurahan
+        $user->role       = $request->role;
         $user->is_verified = 1;
 
         if (!$userId) {
-            $user->password = Hash::make($request->email); // password = email yang di-hash
+            $user->password = Hash::make($request->email); // password default = email yang di-hash
         }
 
         $user->save();
@@ -139,7 +139,7 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'ID tidak valid.');
         }
 
-        $user = User::with('district.city.province')->find($userId);
+        $user = User::with('village.district.city.province')->find($userId);
 
         if (!$user) {
             return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
@@ -155,12 +155,11 @@ class UserController extends Controller
             ->mapWithKeys(function ($item) {
                 $mother = PregnantMother::where('user_id', $item->id)->first();
                 $status = $mother ? 'Ibu Hamil' : 'Ibu Nifas';
-
-                $role = $item->role == 'bidan' ? 'Ibu Bidan' : $status;
+                $role = ucwords($item->role);
 
                 return [
                     // $item->id => "{$item->name} ({$item->email}) - {$status}"
-                    $item->id => "{$item->name} ({$item->email}) - {$role}"
+                    $item->id => "{$role} {$item->name} ({$item->email})"
                 ];
             });
 

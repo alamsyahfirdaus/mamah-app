@@ -22,36 +22,11 @@ class LocationSeeder extends Seeder
         // Insert Cities di Jawa Barat
         $cities = [
             'Kota Tasikmalaya',
-            'Kab. Tasikmalaya',
-            'Kota Bandung',
-            'Kota Bekasi',
-            'Kota Bogor',
-            'Kota Cimahi',
-            'Kota Cirebon',
-            'Kota Depok',
-            'Kota Sukabumi',
-            'Kab. Bandung',
-            'Kab. Bandung Barat',
-            'Kab. Bekasi',
-            'Kab. Bogor',
-            'Kab. Ciamis',
-            'Kab. Cianjur',
-            'Kab. Cirebon',
-            'Kab. Garut',
-            'Kab. Indramayu',
-            'Kab. Karawang',
-            'Kab. Kuningan',
-            'Kab. Majalengka',
-            'Kab. Pangandaran',
-            'Kab. Purwakarta',
-            'Kab. Subang',
-            'Kab. Sukabumi',
-            'Kab. Sumedang',
         ];
 
         $cityIds = [];
         foreach ($cities as $city) {
-            $cityIds[$city] = DB::table('cities')->updateOrInsert(
+            DB::table('cities')->updateOrInsert(
                 ['name' => $city, 'province_id' => $provinceId],
                 ['created_at' => now(), 'updated_at' => now()]
             );
@@ -72,59 +47,54 @@ class LocationSeeder extends Seeder
             'Bungursari',
         ];
 
+        $districtIds = [];
         foreach ($districtsKota as $district) {
             DB::table('districts')->updateOrInsert(
                 ['name' => $district, 'city_id' => $cityIds['Kota Tasikmalaya']],
                 ['created_at' => now(), 'updated_at' => now()]
             );
+            $districtIds[$district] = DB::table('districts')
+                ->where('name', $district)
+                ->where('city_id', $cityIds['Kota Tasikmalaya'])
+                ->value('id');
         }
 
-        // Kecamatan Kabupaten Tasikmalaya
-        $districtsKab = [
-            'Bantarkalong',
-            'Bojongasih',
-            'Bojonggambir',
-            'Ciawi',
-            'Cibalong',
-            'Cigalontang',
-            'Cikalong',
-            'Cikatomas',
-            'Cineam',
-            'Cipatujah',
-            'Cisayong',
-            'Culamega',
-            'Gunung Tanjung',
-            'Jamanis',
-            'Jatiwaras',
-            'Kadipaten',
-            'Karang Jaya',
-            'Karangnunggal',
-            'Leuwisari',
-            'Mangunreja',
-            'Manonjaya',
-            'Padakembang',
-            'Pagerageung',
-            'Pancatengah',
-            'Parungponteng',
-            'Puspahiang',
-            'Rajapolah',
-            'Salawu',
-            'Salopa',
-            'Sariwangi',
-            'Singaparna',
-            'Sodonghilir',
-            'Sukahening',
-            'Sukaraja',
-            'Sukarame',
-            'Sukaratu',
-            'Sukaresik',
-            'Tanjungjaya',
-            'Taraju',
+        // Kelurahan di Kecamatan Tamansari
+        $villagesTamansari = [
+            'Mugarsari',
+            'Mulyasari',
+            'Setiamulya',
+            'Setiawargi',
+            'Sukahurip',
+            'Sumelap',
+            'Tamanjaya',
+            'Tamansari',
         ];
 
-        foreach ($districtsKab as $district) {
-            DB::table('districts')->updateOrInsert(
-                ['name' => $district, 'city_id' => $cityIds['Kab. Tasikmalaya']],
+        foreach ($villagesTamansari as $village) {
+            DB::table('villages')->updateOrInsert(
+                ['name' => $village, 'district_id' => $districtIds['Tamansari']],
+                ['created_at' => now(), 'updated_at' => now()]
+            );
+        }
+
+        // Kelurahan di Kecamatan Kawalu
+        $villagesKawalu = [
+            'Cibeuti',
+            'Cilamajang',
+            'Gununggede',
+            'Gunungtandala',
+            'Karanganyar',
+            'Karsamenak',
+            'Leuwiliang',
+            'Talagasari',
+            'Tanjung',
+            'Urug',
+        ];
+
+        foreach ($villagesKawalu as $village) {
+            DB::table('villages')->updateOrInsert(
+                ['name' => $village, 'district_id' => $districtIds['Kawalu']],
                 ['created_at' => now(), 'updated_at' => now()]
             );
         }
