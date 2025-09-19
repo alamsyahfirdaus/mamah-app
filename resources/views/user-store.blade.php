@@ -128,7 +128,7 @@
 
             let name = $('#name').val().trim();
             let email = $('#email').val().trim();
-            let district = $('#village_id').val().trim();
+            let village = $('#village_id').val().trim();
             let role = $('#role').val().trim();
 
             if (name === '') {
@@ -147,11 +147,12 @@
                 $('#error-email').text('Format email tidak valid.');
             }
 
-            if (district === '') {
+            if ((role === 'ibu' || role === 'bidan') && village === '') {
                 isValid = false;
                 $('#village_id').addClass('is-invalid');
                 $('#village_id').next('.select2-container').find('.select2-selection').addClass(
-                    'border border-danger');
+                    'border border-danger'
+                );
                 $('#error-village_id').text('Desa/Kelurahan wajib dipilih.');
             }
 

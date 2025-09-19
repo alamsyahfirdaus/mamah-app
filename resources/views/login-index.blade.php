@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/ti-icons/css/themify-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/base/vendor.bundle.base.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/auth/css/style.css') }}">
-    <link rel="shortcut icon" href="{{ asset('assets/logo-mamah.png') }}" />
+    <link rel="shortcut icon" href="{{ asset('assets/mamah.png') }}" />
 </head>
 
 <body>

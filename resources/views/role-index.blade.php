@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/ti-icons/css/themify-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/auth/vendors/base/vendor.bundle.base.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/auth/css/style.css') }}">
-    <link rel="shortcut icon" href="{{ asset('assets/logo-mamah.png') }}" />
+    <link rel="shortcut icon" href="{{ asset('assets/mamah.png') }}" />
 </head>
 
 <body>
@@ -28,8 +28,9 @@
                                 </a>
                             </div>
                             <div style="margin-top: 32px; text-align: left;">
-                                <a href="" type="button" class="btn btn-block btn-primary"
-                                    style="font-size: 16px;">Unduh Aplikasi Android
+                                <a href="https://drive.google.com/file/d/1WkuqTbiP5BrznUikD7V38VkxNrjmRanj/view?usp=sharing"
+                                    type="button" class="btn btn-block btn-primary" style="font-size: 16px;">
+                                    Unduh Aplikasi Android
                                 </a>
                                 <br>
                                 <a href="{{ route('login') }}" type="button" class="btn btn-block btn-outline-primary"
