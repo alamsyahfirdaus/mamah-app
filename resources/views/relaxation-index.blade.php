@@ -44,8 +44,8 @@
                                         <td>
                                             <a href="javascript:void(0)"
                                                 data-source="{{ $item->video_url ? 'link' : 'file' }}"
-                                                data-url="{{ $item->video_url ? $item->video_url : asset('storage/uploads/modules/' . $item->file_name) }}"
-                                                onclick="showEducation(this)" title="Lihat Materi">
+                                                data-url="{{ $item->video_url }}" onclick="showEducation(this)"
+                                                title="Lihat Relaksasi" class="{{ $item->is_flyer ? 'text-success' : '' }}">
                                                 {{ $item->title }}
                                             </a>
                                         </td>
@@ -67,8 +67,14 @@
                                                 <div class="dropdown-menu dropdown-menu-right">
                                                     <a class="dropdown-item"
                                                         href="{{ route($segment1 . '.edit', Crypt::encrypt($item->id)) }}">Edit</a>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route($segment1 . '.visibility', Crypt::encrypt($item->id)) }}">{{ $item->is_visible ? 'Sembunyikan' : 'Tampilkan' }}</a>
+                                                    @if (!$item->is_flyer)
+                                                        <a class="dropdown-item"
+                                                            href="{{ route($segment1 . '.visibility', Crypt::encrypt($item->id)) }}">{{ $item->is_visible ? 'Sembunyikan' : 'Tampilkan' }}</a>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route($segment1 . '.flyer', Crypt::encrypt($item->id)) }}">
+                                                            Jadikan Flyer
+                                                        </a>
+                                                    @endif
                                                     <div class="dropdown-divider"></div>
                                                     <a class="dropdown-item text-danger" href="javascript:void(0)"
                                                         data-action="{{ route($segment1 . '.delete', Crypt::encrypt($item->id)) }}"
@@ -204,13 +210,13 @@
                 if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                     content =
                         '<div style="position:relative; width:100%; padding-top:100%; overflow:hidden; border-radius:10px;">' +
-                        '<img src="' + url + '" alt="Materi Edukasi" ' +
+                        '<img src="' + url + '" alt="Materi Relaksasi" ' +
                         'style="position:absolute; top:0; left:0; width:100%; height:500px; object-fit:contain;">' +
                         '</div>';
                 } else if (ext === 'pdf') {
                     content = '<iframe src="' + url + '" width="100%" height="500px"></iframe>';
                 } else {
-                    content = '<a href="' + url + '" target="_blank">Lihat Materi</a>';
+                    content = '<a href="' + url + '" target="_blank">Lihat Relaksasi</a>';
                 }
             }
 

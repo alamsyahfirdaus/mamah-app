@@ -7,7 +7,8 @@ use App\Models\EducationCategory;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class EducationController extends Controller
 {
@@ -80,6 +81,7 @@ class EducationController extends Controller
 
         $mediaType = $request->media_type;
 
+        // Validasi input
         $request->validate([
             'title'        => 'required|string|max:255',
             'category_id'  => 'required|exists:module_categories,id',
@@ -88,7 +90,7 @@ class EducationController extends Controller
                 (!$moduleId && $mediaType === 'image') ? 'required' : 'nullable',
                 'file',
                 'mimes:jpg,jpeg,png',
-                'max:5120', // 5MB cukup untuk gambar
+                'max:5120', // 5MB
             ],
             'video_url'    => $mediaType === 'video' ? ['required', 'url'] : ['nullable'],
             'description'  => 'nullable|string',
@@ -100,51 +102,55 @@ class EducationController extends Controller
             'category_id.exists'   => 'Kategori materi tidak valid.',
             'media_type.required'  => 'Jenis media wajib dipilih.',
             'media_type.in'        => 'Jenis media tidak valid.',
-
             'file_name.required'   => 'Gambar wajib diupload.',
             'file_name.file'       => 'File tidak valid.',
             'file_name.mimes'      => 'Format file harus jpg, jpeg, atau png.',
             'file_name.max'        => 'Ukuran gambar maksimal 5 MB.',
-
             'video_url.required'   => 'Link YouTube wajib diisi.',
             'video_url.url'        => 'Link YouTube tidak valid.',
         ]);
 
+        // Ambil data module jika update, atau buat baru
         $module = $moduleId ? EducationalModule::findOrFail($moduleId) : new EducationalModule();
-
         $module->title       = $request->title;
         $module->category_id = $request->category_id;
         $module->media_type  = $mediaType;
         $module->description = $request->description;
 
-        // Jika jenis media gambar
+        // === Upload gambar ===
         if ($mediaType === 'image' && $request->hasFile('file_name')) {
-            // Hapus file lama jika update
+
+            // Hapus file lama jika ada
             if ($moduleId && $module->file_name) {
-                $oldPath = 'uploads/modules/' . $module->file_name;
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                $oldPath = public_path('assets/images/' . $module->file_name);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
             }
 
             $extension = $request->file('file_name')->getClientOriginalExtension();
             $filename  = uniqid() . '.' . $extension;
-            $request->file('file_name')->storeAs('uploads/modules', $filename, 'public');
+            $destinationPath = public_path('assets/images');
+
+            // Pindahkan file ke folder public/assets/images
+            $request->file('file_name')->move($destinationPath, $filename);
 
             $module->file_name = $filename;
-            $module->video_url = null; // pastikan kosong
+            $module->video_url = null; // kosongkan video
         }
 
-        // Jika jenis media link YouTube
+        // === Jika link video ===
         if ($mediaType === 'video') {
-            // hapus file lama jika sebelumnya pernah upload gambar
+
+            // Hapus file lama jika ada
             if ($module->file_name) {
-                $oldPath = 'uploads/modules/' . $module->file_name;
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                $oldPath = public_path('assets/images/' . $module->file_name);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
                 $module->file_name = null;
             }
+
             $module->video_url = $request->video_url;
         }
 
@@ -167,10 +173,11 @@ class EducationController extends Controller
             return redirect()->back()->with('error', 'Data tidak ditemukan.');
         }
 
+        // Hapus file gambar jika ada
         if ($module->file_name) {
-            $path = 'uploads/modules/' . $module->file_name;
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
+            $path = public_path('assets/images/' . $module->file_name);
+            if (file_exists($path)) {
+                unlink($path);
             }
         }
 

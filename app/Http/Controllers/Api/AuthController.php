@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\DistrictModel;
+use App\Models\PregnantMother;
 use App\Models\User;
 use App\Models\VillageModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -67,13 +66,13 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        // Validasi input awal (tampilan pertama)
+        // Validasi input awal
         $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|string|email|max:255|unique:users',
             'password'   => 'required|string|min:6',
             'role'       => 'required|in:ibu,bidan',
-            'village_id' => 'required|exists:villages,id', // validasi desa/kelurahan
+            'village_id' => 'required|exists:villages,id',
         ], [
             'name.required'       => 'Nama wajib diisi.',
             'email.required'      => 'Email wajib diisi.',
@@ -90,9 +89,21 @@ class AuthController extends Controller
             'email'       => $request->email,
             'password'    => Hash::make($request->password),
             'role'        => $request->role,
-            'village_id'  => $request->village_id, // simpan kelurahan
+            'village_id'  => $request->village_id,
             'is_verified' => 1,
         ]);
+
+        // Jika role = ibu, tambahkan data ke pregnant_mothers
+        if ($user->role == 'ibu') {
+            PregnantMother::create([
+                'user_id'             => $user->id,
+                'mother_age'          => null,
+                'pregnancy_number'    => null,
+                'live_children_count' => 0,
+                'miscarriage_history' => 0,
+                'mother_disease_history' => null,
+            ]);
+        }
 
         // Buat token autentikasi Sanctum
         $token = $user->createToken('mobile-token')->plainTextToken;
@@ -102,17 +113,17 @@ class AuthController extends Controller
             'message'      => 'Registrasi berhasil.',
             'access_token' => $token,
             'user'         => [
-                'id'         => $user->id,
-                'name'       => $user->name,
-                'email'      => $user->email,
-                'role'       => $user->role,
-                'village_id' => $user->village_id,
-                'phone'      => null,
-                'address'    => null,
-                'photo'      => null,
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'role'        => $user->role,
+                'village_id'  => $user->village_id,
+                'phone'       => null,
+                'address'     => null,
+                'photo'       => null,
                 'is_verified' => $user->is_verified,
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
+                'created_at'  => $user->created_at,
+                'updated_at'  => $user->updated_at,
             ]
         ], 201);
     }
@@ -121,41 +132,41 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        // Validasi input
         $request->validate([
             'phone'      => 'nullable|string|max:20',
             'address'    => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
             'photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'phone.string'   => 'Nomor telepon harus berupa teks.',
-            'phone.max'      => 'Nomor telepon maksimal 20 karakter.',
-            'address.string' => 'Alamat harus berupa teks.',
-            'address.max'    => 'Alamat maksimal 255 karakter.',
+            'phone.string'    => 'Nomor telepon harus berupa teks.',
+            'phone.max'       => 'Nomor telepon maksimal 20 karakter.',
+            'address.string'  => 'Alamat harus berupa teks.',
+            'address.max'     => 'Alamat maksimal 255 karakter.',
             'birth_date.date' => 'Tanggal lahir tidak valid.',
-            'photo.image'    => 'File foto harus berupa gambar.',
-            'photo.mimes'    => 'Format foto harus JPEG, PNG, atau JPG.',
-            'photo.max'      => 'Ukuran foto maksimal 2 MB.',
+            'photo.image'     => 'File foto harus berupa gambar.',
+            'photo.mimes'     => 'Format foto harus JPEG, PNG, atau JPG.',
+            'photo.max'       => 'Ukuran foto maksimal 2 MB.',
         ]);
 
-        // Handle upload foto
         if ($request->hasFile('photo')) {
-            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-                Storage::disk('public')->delete($user->photo);
+            // Hapus foto lama (jika ada)
+            if ($user->photo && file_exists(public_path('assets/images/' . $user->photo))) {
+                unlink(public_path('assets/images/' . $user->photo));
             }
 
+            // Simpan foto baru ke folder public/assets/images
             $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
-            $path = $request->file('photo')->storeAs('images', $filename, 'public');
-            $user->photo = $path;
+            $request->file('photo')->move(public_path('assets/images'), $filename);
+
+            // Simpan nama file saja (bukan path penuh)
+            $user->photo = $filename;
         }
 
-        // Update profil
         $user->phone      = $request->phone ?? $user->phone;
         $user->address    = $request->address ?? $user->address;
         $user->birth_date = $request->birth_date ?? $user->birth_date;
         $user->save();
 
-        // Format tanggal
         $formatDate = fn($date) => $date ? $date->format('Y-m-d') : null;
 
         return response()->json([
@@ -165,11 +176,11 @@ class AuthController extends Controller
                 'name'       => $user->name,
                 'email'      => $user->email,
                 'role'       => $user->role,
-                'village_id' => $user->village_id, // tetap dikirim biar bisa dipakai
+                'village_id' => $user->village_id,
                 'phone'      => $user->phone,
                 'address'    => $user->address,
                 'birth_date' => $formatDate($user->birth_date),
-                'photo'      => $user->photo ? url('storage/' . $user->photo) : null,
+                'photo'      => $user->photo ? asset('assets/images/' . $user->photo) : null,
                 'created_at' => $formatDate($user->created_at),
                 'updated_at' => $formatDate($user->updated_at),
             ]

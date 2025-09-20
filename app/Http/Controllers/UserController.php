@@ -152,16 +152,9 @@ class UserController extends Controller
         $users = User::where('role', '!=', 'kia')
             ->orderBy('name', 'asc')
             ->get()
-            ->mapWithKeys(function ($item) {
-                $mother = PregnantMother::where('user_id', $item->id)->first();
-                $status = $mother ? 'Ibu Hamil' : 'Ibu Nifas';
-                $role = ucwords($item->role);
-
-                return [
-                    // $item->id => "{$item->name} ({$item->email}) - {$status}"
-                    $item->id => "{$role} {$item->name} ({$item->email})"
-                ];
-            });
+            ->mapWithKeys(fn($item) => [
+                $item->id => "{$item->name} ({$item->email})"
+            ]);
 
         $data = [
             'title'  => 'Pengguna',
