@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\PregnantMother;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -15,30 +15,58 @@ class ProfileController extends Controller
 {
     public function show()
     {
-        // Ambil data user login beserta relasi district → city → province
-        $user = Auth::user()->load('district.city.province');
+        // Ambil user login + relasi lokasi
+        $user = Auth::user()->load('village.district.city.province');
 
-        // Buat URL lengkap untuk file foto (jika ada)
-        $user->photo = $user->photo
-            ? URL::to('/') . '/storage/' . $user->photo
+        // URL foto
+        $photoUrl = $user->photo
+            ? URL::to('/') . '/assets/images/' . $user->photo
             : null;
 
-        // Siapkan nama lokasi lengkap dalam satu baris: Kecamatan, Kota, Provinsi
-        $districtName = null;
-        if ($user->district) {
-            $regionParts = [
-                $user->district->name ?? null,
-                $user->district->city->name ?? null,
-                $user->district->city->province->name ?? null
-            ];
-            $districtName = implode(', ', array_filter($regionParts));
+        // Ambil nama per level lokasi
+        $village  = optional($user->village)->name;
+        $district = optional($user->village->district)->name;
+        $city     = optional(optional($user->village->district)->city)->name;
+        $province = optional(optional(optional($user->village->district)->city)->province)->name;
+
+        // Gabungan alamat
+        $fullAddress = implode(', ', array_filter([$village, $district, $city, $province]));
+
+        // Data dasar user
+        $userData = [
+            'id'             => $user->id,
+            'name'           => $user->name,
+            'email'          => $user->email,
+            'role'           => $user->role,
+            'birth_date'     => $user->birth_date,
+            'phone'          => $user->phone,
+            'address'        => $user->address,
+            'village_id'     => $user->village_id,
+            'occupation'     => $user->occupation,
+            'photo'          => $photoUrl,
+            'is_verified'    => $user->is_verified,
+            'remember_token' => $user->remember_token,
+            'created_at'     => $user->created_at,
+            'updated_at'     => $user->updated_at,
+
+            // Tambahan custom lokasi
+            'village_name'   => $village,
+            'district_name'  => $district,
+            'city_name'      => $city,
+            'province_name'  => $province,
+            'full_address'   => $fullAddress,
+        ];
+
+        // Jika role = ibu, tambahkan data dari pregnant_mothers
+        if ($user->role === 'ibu') {
+            $pregnantMother = PregnantMother::where('user_id', $user->id)->first();
+            $userData['mother_age']             = $pregnantMother->mother_age ?? null;
+            $userData['pregnancy_number']       = $pregnantMother->pregnancy_number ?? null;
+            $userData['live_children_count']    = $pregnantMother->live_children_count ?? null;
+            $userData['miscarriage_history']    = $pregnantMother->miscarriage_history ?? null;
+            $userData['mother_disease_history'] = $pregnantMother->mother_disease_history ?? null;
         }
 
-        // Konversi user menjadi array dan tambahkan field district_name
-        $userData = $user->toArray();
-        $userData['district_name'] = $districtName;
-
-        // Kembalikan data user
         return response()->json([
             'message' => 'Data profil berhasil diambil.',
             'user'    => $userData,
@@ -47,53 +75,42 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        $user = $request->user(); // Menggunakan $request->user() agar konsisten dengan Laravel Sanctum
+        $user = $request->user(); // User login
 
         // Validasi input
         $validated = $request->validate([
-            'name'     => 'nullable|string|max:255',
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone'    => 'nullable|string|max:20',
-            'address'  => 'nullable|string|max:255',
+            'name'       => 'nullable|string|max:255',
+            'email'      => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone'      => 'nullable|string|max:20',
+            'address'    => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
-            'password' => 'nullable|string|min:6',
-            'photo'    => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
-        ], [
-            'name.string'     => 'Nama harus berupa teks.',
-            'name.max'        => 'Nama tidak boleh lebih dari 255 karakter.',
-            'email.email'     => 'Format email tidak valid.',
-            'email.max'       => 'Email tidak boleh lebih dari 255 karakter.',
-            'email.unique'    => 'Email ini sudah digunakan oleh pengguna lain.',
-            'phone.string'    => 'Nomor HP harus berupa teks.',
-            'phone.max'       => 'Nomor HP tidak boleh lebih dari 20 karakter.',
-            'address.string'  => 'Alamat harus berupa teks.',
-            'address.max'     => 'Alamat tidak boleh lebih dari 255 karakter.',
-            'photo.file'      => 'Foto harus berupa file.',
-            'photo.image'     => 'Foto harus berupa gambar.',
-            'photo.mimes'     => 'Foto harus berformat jpeg, png, atau jpg.',
-            'photo.max'       => 'Ukuran foto maksimal 2MB.',
-            'password.min'    => 'Password minimal terdiri dari 6 karakter.',
-            'birth_date.date' => 'Tanggal lahir harus format tanggal.',
+            'password'   => 'nullable|string|min:6',
+            'photo'      => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
+
+            // Validasi khusus untuk pregnant_mothers
+            'mother_age'             => 'nullable|integer|min:10|max:70',
+            'pregnancy_number'       => 'nullable|integer|min:1',
+            'live_children_count'    => 'nullable|integer|min:0',
+            'miscarriage_history'    => 'nullable|integer|min:0',
+            'mother_disease_history' => 'nullable|string',
         ]);
 
-        // Siapkan path foto
+        // Path default foto lama
         $photoFileName = $user->photo;
 
-        // Jika upload foto baru
+        // Upload foto baru ke assets/images
         if ($request->hasFile('photo')) {
-            // Hapus file lama jika ada
-            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-                Storage::disk('public')->delete($user->photo);
-            }
+            $extension    = $request->file('photo')->getClientOriginalExtension();
+            $newFileName  = Str::random(20) . '.' . $extension;
 
-            // Simpan foto baru
-            $extension = $request->file('photo')->getClientOriginalExtension();
-            $newFileName = Str::random(20) . '.' . $extension;
-            $request->file('photo')->storeAs('images', $newFileName, 'public');
-            $photoFileName = 'images/' . $newFileName;
+            // Simpan file ke public/assets/images
+            $request->file('photo')->move(public_path('assets/images'), $newFileName);
+
+            // Simpan path relatif
+            $photoFileName = 'assets/images/' . $newFileName;
         }
 
-        // Siapkan data untuk update
+        // Data untuk update users
         $dataToUpdate = [
             'name'       => $request->name ?? $user->name,
             'email'      => $request->email ?? $user->email,
@@ -103,14 +120,27 @@ class ProfileController extends Controller
             'photo'      => $photoFileName,
         ];
 
-        // Jika ada password baru
         if ($request->filled('password')) {
             $dataToUpdate['password'] = Hash::make($request->password);
         }
 
-        // Proses update
         try {
+            // Update tabel users
             $user->update($dataToUpdate);
+
+            // Jika role ibu → update juga tabel pregnant_mothers
+            if ($user->role === 'ibu') {
+                PregnantMother::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'mother_age'             => $request->mother_age ?? null,
+                        'pregnancy_number'       => $request->pregnancy_number ?? null,
+                        'live_children_count'    => $request->live_children_count ?? null,
+                        'miscarriage_history'    => $request->miscarriage_history ?? 0,
+                        'mother_disease_history' => $request->mother_disease_history ?? null,
+                    ]
+                );
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
@@ -119,8 +149,8 @@ class ProfileController extends Controller
             ], 500);
         }
 
-        // Generate URL foto lengkap
-        $user->photo = $user->photo ? url('storage/' . $user->photo) : null;
+        // Generate full URL foto
+        $user->photo = $user->photo ? url($user->photo) : null;
 
         return response()->json([
             'status'  => 'success',

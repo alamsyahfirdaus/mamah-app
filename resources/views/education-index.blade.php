@@ -45,7 +45,7 @@
                                         <td>
                                             <a href="javascript:void(0)"
                                                 data-source="{{ $item->video_url ? 'link' : 'file' }}"
-                                                data-url="{{ $item->video_url ? $item->video_url : asset('storage/uploads/modules/' . $item->file_name) }}"
+                                                data-url="{{ $item->video_url ? $item->video_url : asset('assets/images/' . $item->file_name) }}"
                                                 onclick="showEducation(this)" title="Lihat Materi">
                                                 {{ $item->title }}
                                             </a>

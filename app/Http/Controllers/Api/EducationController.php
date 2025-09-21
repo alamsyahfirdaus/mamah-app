@@ -27,9 +27,12 @@ class EducationController extends Controller
         // Buat query dasar: hanya modul yang visible
         $query = EducationalModule::where('is_visible', true);
 
-        // Jika category_id dikirim, tambahkan filter
         if ($categoryId) {
+            // Jika category_id dikirim, filter sesuai category_id
             $query->where('category_id', $categoryId);
+        } else {
+            // Jika category_id tidak dikirim, tampilkan semua kecuali category_id = 1
+            $query->where('category_id', '!=', 1);
         }
 
         // Ambil semua data sesuai query, urut berdasarkan tanggal terbaru
@@ -52,7 +55,7 @@ class EducationController extends Controller
                 'file_url'    => $module->video_url
                     ? $module->video_url
                     : ($module->file_name
-                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        ? URL::to('/') . '/assets/images/' . $module->file_name
                         : null),
                 'description' => $module->description,
                 'category_id' => $module->category_id,
@@ -94,7 +97,7 @@ class EducationController extends Controller
                 'file_url'    => $module->video_url
                     ? $module->video_url
                     : ($module->file_name
-                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        ? URL::to('/') . '/assets/images/' . $module->file_name
                         : null),
                 'description' => $module->description,
                 'category_id' => $module->category_id,
@@ -148,8 +151,10 @@ class EducationController extends Controller
      */
     public function listCategories()
     {
-        // Ambil semua kategori, urut berdasarkan nama ascending
-        $categories = EducationCategory::orderBy('name', 'asc')->get();
+        // Ambil semua kategori, kecuali id = 1, urut berdasarkan nama ascending
+        $categories = EducationCategory::where('id', '!=', 1)
+            ->orderBy('name', 'asc')
+            ->get();
 
         // Format data kategori
         $data = $categories->map(function ($category) {
@@ -168,13 +173,14 @@ class EducationController extends Controller
 
     /**
      * List semua video relaksasi (category_id = 1) yang visible.
-     * Bisa diakses via GET atau POST.
+     * Tidak termasuk modul yang ditandai sebagai flyer.
      */
     public function listRelaxationVideos()
     {
-        // Query hanya materi relaksasi yang visible
+        // Query hanya materi relaksasi yang visible dan bukan flyer
         $modules = EducationalModule::where('is_visible', true)
             ->where('category_id', 1)
+            ->where('is_flyer', false) // filter tambahan
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -191,11 +197,11 @@ class EducationController extends Controller
             return [
                 'id'          => $module->id,
                 'title'       => $module->title,
-                'media_type'  => $module->media_type, // 'video' atau 'image'
+                'media_type'  => $module->media_type,
                 'file_url'    => $module->video_url
                     ? $module->video_url
                     : ($module->file_name
-                        ? URL::to('/') . '/storage/uploads/modules/' . $module->file_name
+                        ? URL::to('/') . '/assets/images/' . $module->file_name
                         : null),
                 'description' => $module->description,
                 'created_at'  => $module->created_at->format('Y-m-d'),
@@ -204,6 +210,41 @@ class EducationController extends Controller
 
         return response()->json([
             'message' => 'Daftar video relaksasi berhasil diambil.',
+            'data'    => $data
+        ]);
+    }
+
+    public function showVideoFlyer()
+    {
+        $module = EducationalModule::where('is_visible', true)
+            ->where('category_id', 1)
+            ->where('is_flyer', 1)
+            ->first(); // ambil 1 data saja
+
+        // Jika tidak ada video flyer
+        if (!$module) {
+            return response()->json([
+                'message' => 'Belum ada video flyer yang tersedia.',
+                'data'    => null
+            ], 404);
+        }
+
+        // Format data tunggal
+        $data = [
+            'id'          => $module->id,
+            'title'       => $module->title,
+            'media_type'  => $module->media_type,
+            'file_url'    => $module->video_url
+                ? $module->video_url
+                : ($module->file_name
+                    ? URL::to('/') . '/assets/images/' . $module->file_name
+                    : null),
+            'description' => $module->description,
+            'created_at'  => $module->created_at->format('Y-m-d'),
+        ];
+
+        return response()->json([
+            'message' => 'Video flyer berhasil diambil.',
             'data'    => $data
         ]);
     }

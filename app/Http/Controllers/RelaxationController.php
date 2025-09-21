@@ -130,4 +130,31 @@ class RelaxationController extends Controller
         $message = $module->is_visible ? 'Relaksasi berhasil ditampilkan.' : 'Relaksasi berhasil disembunyikan.';
         return redirect()->back()->with('success', $message);
     }
+
+    public function toggleFlyer($id)
+    {
+        try {
+            $module = EducationalModule::findOrFail(Crypt::decrypt($id));
+
+            if ($module->is_flyer) {
+                // Kalau sudah flyer → jadikan bukan flyer
+                $module->is_flyer = false;
+                $message = "Video berhasil dijadikan bukan flyer.";
+            } else {
+                // Reset semua flyer lain (hanya boleh 1 flyer aktif)
+                EducationalModule::where('is_flyer', true)->update(['is_flyer' => false]);
+
+                // Jadikan flyer + pastikan visible
+                $module->is_flyer   = true;
+                $module->is_visible = true;
+                $message = "Video berhasil dijadikan flyer.";
+            }
+
+            $module->save();
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengubah status flyer: ' . $e->getMessage());
+        }
+    }
 }

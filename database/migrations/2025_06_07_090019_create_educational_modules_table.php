@@ -24,6 +24,7 @@ return new class extends Migration
                 ->onDelete('set null')
                 ->onUpdate('cascade');
             $table->boolean('is_visible')->default(true); // Kontrol tampil/tidak
+            $table->boolean('is_flyer')->default(false); // Video khusus flyer
             $table->timestamps();
         });
     }

@@ -41,7 +41,8 @@
                                     <tr>
                                         <td>
                                             {{ $i + 1 }}</td>
-                                        <td class="{{ $item->is_special ? 'text-danger' : '' }}" title="Pertanyaan Khusus">
+                                        <td class="{{ $item->is_special ? 'text-danger' : '' }}"
+                                            title="{{ $item->is_special ? 'Pertanyaan Khusus' : '' }}">
                                             {{ $item->question_text }}
                                         </td>
                                         <td>

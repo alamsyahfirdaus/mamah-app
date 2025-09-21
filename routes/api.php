@@ -34,7 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mendapatkan data user login (nama & foto)
     Route::get('/me', function (Request $request) {
         $user = $request->user();
-        $user->photo = $user->photo ? URL::to('/') . '/storage/' . $user->photo : null;
+
+        $user->photo = $user->photo
+            ? URL::to('/') . '/assets/images/' . $user->photo   // otomatis jadi http://domain.com/assets/images/namafile.jpg
+            : null;
 
         return response()->json($user);
     });
@@ -75,7 +78,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------
     // RELAKSASI
     // ---------------------
+
+    // List semua video relaksasi (kecuali flyer)
     Route::match(['get', 'post'], '/relaxation', [EducationController::class, 'listRelaxationVideos']);
+
+    // Tampilkan flyer relaksasi
+    Route::get('/flyer', [EducationController::class, 'showVideoFlyer']);
+
 
     // ---------------------
     // SUPPORT GROUP / DISKUSI

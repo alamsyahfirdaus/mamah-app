@@ -81,6 +81,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{id}/delete', [RelaxationController::class, 'destroy'])->name('delete');
             Route::get('/{id}/show', [RelaxationController::class, 'show'])->name('show');
             Route::get('/{id}/visibility', [RelaxationController::class, 'toggleVisibility'])->name('visibility');
+            Route::get('/{id}/flyer', [RelaxationController::class, 'toggleFlyer'])->name('flyer');
         });
 
         // Grup Diskusi

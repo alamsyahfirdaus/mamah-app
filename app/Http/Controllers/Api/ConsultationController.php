@@ -64,9 +64,9 @@ class ConsultationController extends Controller
         // Query dasar: filter role
         $query = User::where('role', $targetRole)->select('id', 'name', 'email', 'photo');
 
-        // Jika user punya district_id, filter berdasarkan district_id
-        if ($user->district_id) {
-            $query->where('district_id', $user->district_id);
+        // Jika user punya village_id, filter berdasarkan village_id
+        if ($user->village_id) {
+            $query->where('village_id', $user->village_id);
         }
 
         $data = $query->orderBy('name')->get();
@@ -81,7 +81,7 @@ class ConsultationController extends Controller
 
         return response()->json([
             'message' => "Daftar {$targetRole} berhasil diambil.",
-            'data' => $data
+            'data'    => $data
         ]);
     }
 
@@ -182,8 +182,6 @@ class ConsultationController extends Controller
         ], $id ? 200 : 201);
     }
 
-
-
     public function show($id)
     {
         // Ambil data konsultasi beserta relasi ibu dan bidan
@@ -216,7 +214,6 @@ class ConsultationController extends Controller
             ]
         ]);
     }
-
 
     public function reply(Request $request)
     {
