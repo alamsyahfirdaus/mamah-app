@@ -173,7 +173,7 @@ class AuthController extends Controller
                 'created_at' => $formatDate($user->created_at),
                 'updated_at' => $formatDate($user->updated_at),
             ]
-        ]);
+            ],200);
     }
 
     public function getRegionList()
