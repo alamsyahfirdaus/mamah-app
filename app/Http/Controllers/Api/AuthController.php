@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PregnantMother;
 use App\Models\User;
 use App\Models\VillageModel;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -97,11 +98,11 @@ class AuthController extends Controller
         if ($user->role == 'ibu') {
             PregnantMother::create([
                 'user_id'             => $user->id,
-                'mother_age'          => null,
-                'pregnancy_number'    => null,
+                'mother_age'          => 0,
+                'pregnancy_number'    => 0,
                 'live_children_count' => 0,
                 'miscarriage_history' => 0,
-                'mother_disease_history' => null,
+                'mother_disease_history' => "tidak ada",
             ]);
         }
 
@@ -127,66 +128,101 @@ class AuthController extends Controller
             ]
         ], 201);
     }
-
-    public function completeProfile(Request $request)
+ public function completeMotherData(Request $request)
     {
+        // 6️⃣ Hanya user yang login (dengan token) yang bisa akses
         $user = $request->user();
 
-        $request->validate([
-            'phone'      => 'nullable|string|max:20',
-            'address'    => 'nullable|string|max:255',
-            'birth_date' => 'nullable|date',
-            'photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ], [
-            'phone.string'    => 'Nomor telepon harus berupa teks.',
-            'phone.max'       => 'Nomor telepon maksimal 20 karakter.',
-            'address.string'  => 'Alamat harus berupa teks.',
-            'address.max'     => 'Alamat maksimal 255 karakter.',
-            'birth_date.date' => 'Tanggal lahir tidak valid.',
-            'photo.image'     => 'File foto harus berupa gambar.',
-            'photo.mimes'     => 'Format foto harus JPEG, PNG, atau JPG.',
-            'photo.max'       => 'Ukuran foto maksimal 2 MB.',
-        ]);
-
-        if ($request->hasFile('photo')) {
-            // Hapus foto lama (jika ada)
-            if ($user->photo && file_exists(public_path('assets/images/' . $user->photo))) {
-                unlink(public_path('assets/images/' . $user->photo));
-            }
-
-            // Simpan foto baru ke folder public/assets/images
-            $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
-            $request->file('photo')->move(public_path('assets/images'), $filename);
-
-            // Simpan nama file saja (bukan path penuh)
-            $user->photo = $filename;
+        if ($user->role !== 'ibu') {
+            return response()->json([
+                'message' => 'Hanya pengguna dengan peran ibu yang bisa melengkapi data.'
+            ], 403);
         }
 
-        $user->phone      = $request->phone ?? $user->phone;
-        $user->address    = $request->address ?? $user->address;
-        $user->birth_date = $request->birth_date ?? $user->birth_date;
-        $user->save();
+        // 7️⃣ Validasi input tambahan
+        $request->validate([
+            'mother_age'             => 'required|integer|min:10|max:60',
+            'pregnancy_number'       => 'required|integer|min:1|max:20',
+            'live_children_count'    => 'required|integer|min:0|max:20',
+            'miscarriage_history'    => 'required|integer|min:0|max:10',
+            'mother_disease_history' => 'nullable|string|max:255',
+        ]);
 
-        $formatDate = fn($date) => $date ? $date->format('Y-m-d') : null;
+        // 8️⃣ Update data pregnant_mothers milik user login
+        $mother = PregnantMother::where('user_id', $user->id)->first();
+
+        if (!$mother) {
+            return response()->json(['message' => 'Data ibu tidak ditemukan.'], 404);
+        }
+
+        $mother->update([
+            'mother_age'             => $request->mother_age,
+            'pregnancy_number'       => $request->pregnancy_number,
+            'live_children_count'    => $request->live_children_count,
+            'miscarriage_history'    => $request->miscarriage_history,
+            'mother_disease_history' => $request->mother_disease_history,
+        ]);
 
         return response()->json([
-            'message' => 'Profil berhasil dilengkapi.',
-            'user'    => [
-                'id'         => $user->id,
-                'name'       => $user->name,
-                'email'      => $user->email,
-                'role'       => $user->role,
-                'village_id' => $user->village_id,
-                'phone'      => $user->phone,
-                'address'    => $user->address,
-                'birth_date' => $formatDate($user->birth_date),
-                'photo'      => $user->photo ? asset('assets/images/' . $user->photo) : null,
-                'created_at' => $formatDate($user->created_at),
-                'updated_at' => $formatDate($user->updated_at),
-            ]
-            ],200);
+            'message' => 'Data ibu berhasil dilengkapi.',
+            'data'    => $mother
+        ], 200);
+    }
+   public function completeProfile(Request $request)
+{
+    $user = $request->user();
+
+    $request->validate([
+        'phone'      => 'nullable|string|max:20',
+        'address'    => 'nullable|string|max:255',
+        'birth_date' => 'nullable|date',
+        'photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ], [
+        'phone.string'    => 'Nomor telepon harus berupa teks.',
+        'phone.max'       => 'Nomor telepon maksimal 20 karakter.',
+        'address.string'  => 'Alamat harus berupa teks.',
+        'address.max'     => 'Alamat maksimal 255 karakter.',
+        'birth_date.date' => 'Tanggal lahir tidak valid.',
+        'photo.image'     => 'File foto harus berupa gambar.',
+        'photo.mimes'     => 'Format foto harus JPEG, PNG, atau JPG.',
+        'photo.max'       => 'Ukuran foto maksimal 2 MB.',
+    ]);
+
+    if ($request->hasFile('photo')) {
+        if ($user->photo && file_exists(public_path('assets/images/' . $user->photo))) {
+            unlink(public_path('assets/images/' . $user->photo));
+        }
+
+        $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
+        $request->file('photo')->move(public_path('assets/images'), $filename);
+        $user->photo = $filename;
     }
 
+    $user->phone      = $request->phone ?? $user->phone;
+    $user->address    = $request->address ?? $user->address;
+    $user->birth_date = $request->birth_date ?? $user->birth_date;
+    $user->save();
+
+    // ✅ Pastikan birth_date diubah jadi Carbon sebelum format
+    $formatDate = fn($date) => $date ? Carbon::parse($date)->format('Y-m-d') : null;
+
+    return response()->json([
+        'message' => 'Profil berhasil dilengkapi.',
+        'user'    => [
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'role'       => $user->role,
+            'village_id' => $user->village_id,
+            'phone'      => $user->phone,
+            'address'    => $user->address,
+            'birth_date' => $formatDate($user->birth_date),
+            'photo'      => $user->photo ? asset('assets/images/' . $user->photo) : null,
+            'created_at' => $formatDate($user->created_at),
+            'updated_at' => $formatDate($user->updated_at),
+        ]
+    ], 200);
+}
     public function getRegionList()
     {
         // Ambil semua desa/kelurahan beserta relasi kecamatan, kota, dan provinsi

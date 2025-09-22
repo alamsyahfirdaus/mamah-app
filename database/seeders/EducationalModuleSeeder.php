@@ -42,6 +42,7 @@ class EducationalModuleSeeder extends Seeder
                 'title'       => 'Mengenal Depresi Pascamelahirkan',
                 'media_type'  => 'video',
                 'file_name'   => 'depresi.mp4',
+                'video_url'   => null, // ✅ tambahkan
                 'description' => 'Depresi pascamelahirkan adalah kondisi mental serius yang dapat memengaruhi ibu setelah melahirkan. Modul ini menjelaskan gejala, penyebab, dan cara penanganannya.',
                 'category_id' => 2,
                 'is_visible'  => true,
@@ -52,6 +53,7 @@ class EducationalModuleSeeder extends Seeder
                 'title'       => 'Tips Mengatasi Baby Blues',
                 'media_type'  => 'video',
                 'file_name'   => 'baby_blues.pdf',
+                'video_url'   => null, // ✅ tambahkan
                 'description' => 'Dokumen ini berisi langkah-langkah praktis untuk membantu ibu mengatasi baby blues setelah melahirkan.',
                 'category_id' => 2,
                 'is_visible'  => true,
@@ -64,6 +66,7 @@ class EducationalModuleSeeder extends Seeder
                 'title'       => 'Informasi Perawatan Kehamilan Sehat',
                 'media_type'  => 'video',
                 'file_name'   => 'kehamilan.mp4',
+                'video_url'   => null, // ✅ tambahkan
                 'description' => 'Panduan kehamilan sehat, termasuk pola makan, olahraga ringan, dan tanda-tanda bahaya yang perlu diperhatikan.',
                 'category_id' => 3,
                 'is_visible'  => true,
@@ -74,6 +77,7 @@ class EducationalModuleSeeder extends Seeder
                 'title'       => 'Checklist Persiapan Persalinan',
                 'media_type'  => 'document',
                 'file_name'   => 'checklist_persiapan.pdf',
+                'video_url'   => null, // ✅ tambahkan
                 'description' => 'Daftar barang dan persiapan penting yang harus dilakukan menjelang persalinan.',
                 'category_id' => 3,
                 'is_visible'  => true,
@@ -86,6 +90,7 @@ class EducationalModuleSeeder extends Seeder
                 'title'       => 'Nutrisi Sehat untuk Ibu Nifas',
                 'media_type'  => 'image',
                 'file_name'   => 'nutrisi.jpg',
+                'video_url'   => null, // ✅ tambahkan
                 'description' => 'Makanan bergizi seimbang sangat penting dalam masa pemulihan pasca persalinan. Artikel ini membahas makanan yang direkomendasikan.',
                 'category_id' => 4,
                 'is_visible'  => true,
@@ -96,6 +101,7 @@ class EducationalModuleSeeder extends Seeder
                 'title'       => 'Perawatan Diri Selama Masa Nifas',
                 'media_type'  => 'video',
                 'file_name'   => 'perawatan_nifas.pdf',
+                'video_url'   => null, // ✅ tambahkan
                 'description' => 'Modul ini berisi tips perawatan diri, kebersihan, dan pemantauan kesehatan selama masa nifas.',
                 'category_id' => 4,
                 'is_visible'  => true,

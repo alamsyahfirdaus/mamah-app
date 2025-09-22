@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------
     Route::post('/logout', [AuthController::class, 'logout']); // Logout dan hapus token
     Route::post('/complete-profile', [AuthController::class, 'completeProfile']); // Lengkapi profil user
+    Route::post('/mother/complete', [AuthController::class, 'completeMotherData']);
 
     // Mendapatkan data user login (nama & foto)
     Route::get('/me', function (Request $request) {

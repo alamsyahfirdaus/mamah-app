@@ -73,91 +73,80 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(Request $request)
-    {
-        $user = $request->user(); // User login
+   public function update(Request $request)
+{
+    $user = $request->user();
 
-        // Validasi input
-        $validated = $request->validate([
-            'name'       => 'nullable|string|max:255',
-            'email'      => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone'      => 'nullable|string|max:20',
-            'address'    => 'nullable|string|max:255',
-            'birth_date' => 'nullable|date',
-            'password'   => 'nullable|string|min:6',
-            'photo'      => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
+    $validated = $request->validate([
+        'name'       => 'nullable|string|max:255',
+        'email'      => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+        'phone'      => 'nullable|string|max:20',
+        'address'    => 'nullable|string|max:255',
+        'birth_date' => 'nullable|date',
+        'password'   => 'nullable|string|min:6',
+        'photo'      => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
 
-            // Validasi khusus untuk pregnant_mothers
-            'mother_age'             => 'nullable|integer|min:10|max:70',
-            'pregnancy_number'       => 'nullable|integer|min:1',
-            'live_children_count'    => 'nullable|integer|min:0',
-            'miscarriage_history'    => 'nullable|integer|min:0',
-            'mother_disease_history' => 'nullable|string',
-        ]);
+        'mother_age'             => 'nullable|integer|min:10|max:70',
+        'pregnancy_number'       => 'nullable|integer|min:1',
+        'live_children_count'    => 'nullable|integer|min:0',
+        'miscarriage_history'    => 'nullable|integer|min:0',
+        'mother_disease_history' => 'nullable|string',
+    ]);
 
-        // Path default foto lama
-        $photoFileName = $user->photo;
+    $photoFileName = $user->photo;
 
-        // Upload foto baru ke assets/images
-        if ($request->hasFile('photo')) {
-            $extension    = $request->file('photo')->getClientOriginalExtension();
-            $newFileName  = Str::random(20) . '.' . $extension;
-
-            // Simpan file ke public/assets/images
-            $request->file('photo')->move(public_path('assets/images'), $newFileName);
-
-            // Simpan path relatif
-            $photoFileName = 'assets/images/' . $newFileName;
-        }
-
-        // Data untuk update users
-        $dataToUpdate = [
-            'name'       => $request->name ?? $user->name,
-            'email'      => $request->email ?? $user->email,
-            'phone'      => $request->phone ?? $user->phone,
-            'address'    => $request->address ?? $user->address,
-            'birth_date' => $request->birth_date ?? $user->birth_date,
-            'photo'      => $photoFileName,
-        ];
-
-        if ($request->filled('password')) {
-            $dataToUpdate['password'] = Hash::make($request->password);
-        }
-
-        try {
-            // Update tabel users
-            $user->update($dataToUpdate);
-
-            // Jika role ibu → update juga tabel pregnant_mothers
-            if ($user->role === 'ibu') {
-                PregnantMother::updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'mother_age'             => $request->mother_age ?? null,
-                        'pregnancy_number'       => $request->pregnancy_number ?? null,
-                        'live_children_count'    => $request->live_children_count ?? null,
-                        'miscarriage_history'    => $request->miscarriage_history ?? 0,
-                        'mother_disease_history' => $request->mother_disease_history ?? null,
-                    ]
-                );
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Gagal memperbarui profil.',
-                'error'   => $e->getMessage(),
-            ], 500);
-        }
-
-        // Generate full URL foto
-        $user->photo = $user->photo ? url($user->photo) : null;
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Profil berhasil diperbarui.',
-            'data'    => [
-                'profile' => $user,
-            ]
-        ]);
+    if ($request->hasFile('photo')) {
+        $extension = $request->file('photo')->getClientOriginalExtension();
+        $newFileName = Str::random(20) . '.' . $extension;
+        $request->file('photo')->move(public_path('assets/images'), $newFileName);
+        $photoFileName = 'assets/images/' . $newFileName;
     }
+
+    $dataToUpdate = [
+        'name'       => $request->name ?? $user->name,
+        'email'      => $request->email ?? $user->email,
+        'phone'      => $request->phone ?? $user->phone,
+        'address'    => $request->address ?? $user->address,
+        'birth_date' => $request->birth_date ?? $user->birth_date,
+        'photo'      => $photoFileName,
+    ];
+
+    if ($request->filled('password')) {
+        $dataToUpdate['password'] = Hash::make($request->password);
+    }
+
+    try {
+        $user->update($dataToUpdate);
+
+        if ($user->role === 'ibu') {
+            PregnantMother::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'mother_age'             => $request->mother_age,
+                    'pregnancy_number'       => $request->pregnancy_number,
+                    'live_children_count'    => $request->live_children_count,
+                    'miscarriage_history'    => $request->miscarriage_history,
+                    'mother_disease_history' => $request->mother_disease_history,
+                ]
+            );
+        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Gagal memperbarui profil.',
+            'error'   => $e->getMessage(),
+        ], 500);
+    }
+
+    $user->photo = $user->photo ? url($user->photo) : null;
+
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Profil berhasil diperbarui.',
+        'data'    => [
+            'profile' => $user,
+        ]
+    ]);
+}
+
 }
