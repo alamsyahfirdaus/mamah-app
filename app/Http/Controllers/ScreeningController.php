@@ -118,7 +118,7 @@ class ScreeningController extends Controller
             ? 'Pertanyaan berhasil diperbarui.'
             : 'Pertanyaan berhasil ditambahkan.';
 
-        return redirect()->route('screening.index')->with('success', $message);
+        return redirect()->route('question.index')->with('success', $message);
     }
 
     public function destroy($id)
@@ -137,7 +137,7 @@ class ScreeningController extends Controller
 
         $question->delete();
 
-        return redirect()->route('screening.index')->with('success', 'Pertanyaan berhasil dihapus.');
+        return redirect()->route('question.index')->with('success', 'Pertanyaan berhasil dihapus.');
     }
 
     public function reorder($encryptedId, $direction)

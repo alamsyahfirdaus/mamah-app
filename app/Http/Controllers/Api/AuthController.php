@@ -128,7 +128,8 @@ class AuthController extends Controller
             ]
         ], 201);
     }
- public function completeMotherData(Request $request)
+
+    public function completeMotherData(Request $request)
     {
         // 6️⃣ Hanya user yang login (dengan token) yang bisa akses
         $user = $request->user();
@@ -168,61 +169,63 @@ class AuthController extends Controller
             'data'    => $mother
         ], 200);
     }
-   public function completeProfile(Request $request)
-{
-    $user = $request->user();
 
-    $request->validate([
-        'phone'      => 'nullable|string|max:20',
-        'address'    => 'nullable|string|max:255',
-        'birth_date' => 'nullable|date',
-        'photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-    ], [
-        'phone.string'    => 'Nomor telepon harus berupa teks.',
-        'phone.max'       => 'Nomor telepon maksimal 20 karakter.',
-        'address.string'  => 'Alamat harus berupa teks.',
-        'address.max'     => 'Alamat maksimal 255 karakter.',
-        'birth_date.date' => 'Tanggal lahir tidak valid.',
-        'photo.image'     => 'File foto harus berupa gambar.',
-        'photo.mimes'     => 'Format foto harus JPEG, PNG, atau JPG.',
-        'photo.max'       => 'Ukuran foto maksimal 2 MB.',
-    ]);
+    public function completeProfile(Request $request)
+    {
+        $user = $request->user();
 
-    if ($request->hasFile('photo')) {
-        if ($user->photo && file_exists(public_path('assets/images/' . $user->photo))) {
-            unlink(public_path('assets/images/' . $user->photo));
+        $request->validate([
+            'phone'      => 'nullable|string|max:20',
+            'address'    => 'nullable|string|max:255',
+            'birth_date' => 'nullable|date',
+            'photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'phone.string'    => 'Nomor telepon harus berupa teks.',
+            'phone.max'       => 'Nomor telepon maksimal 20 karakter.',
+            'address.string'  => 'Alamat harus berupa teks.',
+            'address.max'     => 'Alamat maksimal 255 karakter.',
+            'birth_date.date' => 'Tanggal lahir tidak valid.',
+            'photo.image'     => 'File foto harus berupa gambar.',
+            'photo.mimes'     => 'Format foto harus JPEG, PNG, atau JPG.',
+            'photo.max'       => 'Ukuran foto maksimal 2 MB.',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            if ($user->photo && file_exists(public_path('assets/images/' . $user->photo))) {
+                unlink(public_path('assets/images/' . $user->photo));
+            }
+
+            $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
+            $request->file('photo')->move(public_path('assets/images'), $filename);
+            $user->photo = $filename;
         }
 
-        $filename = Str::random(20) . '.' . $request->file('photo')->getClientOriginalExtension();
-        $request->file('photo')->move(public_path('assets/images'), $filename);
-        $user->photo = $filename;
+        $user->phone      = $request->phone ?? $user->phone;
+        $user->address    = $request->address ?? $user->address;
+        $user->birth_date = $request->birth_date ?? $user->birth_date;
+        $user->save();
+
+        // ✅ Pastikan birth_date diubah jadi Carbon sebelum format
+        $formatDate = fn($date) => $date ? Carbon::parse($date)->format('Y-m-d') : null;
+
+        return response()->json([
+            'message' => 'Profil berhasil dilengkapi.',
+            'user'    => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role,
+                'village_id' => $user->village_id,
+                'phone'      => $user->phone,
+                'address'    => $user->address,
+                'birth_date' => $formatDate($user->birth_date),
+                'photo'      => $user->photo ? asset('assets/images/' . $user->photo) : null,
+                'created_at' => $formatDate($user->created_at),
+                'updated_at' => $formatDate($user->updated_at),
+            ]
+        ], 200);
     }
 
-    $user->phone      = $request->phone ?? $user->phone;
-    $user->address    = $request->address ?? $user->address;
-    $user->birth_date = $request->birth_date ?? $user->birth_date;
-    $user->save();
-
-    // ✅ Pastikan birth_date diubah jadi Carbon sebelum format
-    $formatDate = fn($date) => $date ? Carbon::parse($date)->format('Y-m-d') : null;
-
-    return response()->json([
-        'message' => 'Profil berhasil dilengkapi.',
-        'user'    => [
-            'id'         => $user->id,
-            'name'       => $user->name,
-            'email'      => $user->email,
-            'role'       => $user->role,
-            'village_id' => $user->village_id,
-            'phone'      => $user->phone,
-            'address'    => $user->address,
-            'birth_date' => $formatDate($user->birth_date),
-            'photo'      => $user->photo ? asset('assets/images/' . $user->photo) : null,
-            'created_at' => $formatDate($user->created_at),
-            'updated_at' => $formatDate($user->updated_at),
-        ]
-    ], 200);
-}
     public function getRegionList()
     {
         // Ambil semua desa/kelurahan beserta relasi kecamatan, kota, dan provinsi
