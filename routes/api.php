@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/result', [ScreeningController::class, 'screeningResult']);      // Hasil skrining user login
         Route::get('/user/{id}', [ScreeningController::class, 'showUserResult']);    // Hasil skrining user by ID
         Route::get('/all/user', [ScreeningController::class, 'listUserWithScreening']); // Semua ibu + hasil
+        Route::get('/average', [ScreeningController::class, 'averageScoreScreening']); // Rata-rata skor skrining
     });
 
     // ---------------------

@@ -163,22 +163,31 @@ class ScreeningController extends Controller
     // Menampilkan hasil skrining milik user yang sedang login
     public function screeningResult()
     {
-        // Ambil hasil skrining milik user (karena hanya 1 data per user)
-        $result = ScreeningResult::where('user_id', Auth::id())->first();
+        // Ambil data user yang sedang login
+        $userId = Auth::id();
 
-        // Jika belum pernah melakukan skrining
+        // Ambil hasil skrining milik user (karena hanya 1 data per user)
+        $result = ScreeningResult::where('user_id', $userId)->first();
+
+        // Jika user belum pernah melakukan skrining, kembalikan response dengan data default
         if (!$result) {
             return response()->json([
-                'message' => 'Belum ada hasil skrining.'
-            ], 404);
+                'message' => 'Belum ada hasil skrining.',
+                'data' => [
+                    'score'          => 0,    // Skor default
+                    'category'       => '-',  // Kategori default
+                    'recommendation' => '-'   // Rekomendasi default
+                ]
+            ], 200);
         }
 
-        // Kembalikan data hasil skrining
+        // Jika sudah ada hasil skrining, kembalikan data yang sebenarnya
         return response()->json([
             'message' => 'Hasil skrining berhasil diambil.',
             'data'    => $result
         ]);
     }
+
 
     // Menampilkan hasil skrining milik pengguna tertentu (khusus untuk bidan)
     public function showUserResult($id)
@@ -236,6 +245,73 @@ class ScreeningController extends Controller
         return response()->json([
             'message' => 'Daftar ibu dan hasil skrining berhasil diambil.',
             'data'    => $mothers
+        ]);
+    }
+
+    public function averageScoreScreening()
+    {
+        // Ambil data user yang sedang login
+        $user = Auth::user();
+
+        // Pastikan hanya bidan yang bisa mengakses endpoint ini
+        if ($user->role !== 'bidan') {
+            return response()->json([
+                'message' => 'Akses ditolak. Hanya bidan yang dapat melihat data ini.'
+            ], 403); // HTTP 403 Forbidden
+        }
+
+        // Ambil village_id bidan untuk memfilter ibu di desa/kelurahan yang sama
+        $villageId = $user->village_id;
+
+        // Ambil semua user dengan role 'ibu' di desa bidan beserta hasil skriningnya
+        $mothers = User::where('role', 'ibu')
+            ->where('village_id', $villageId)
+            ->with('screeningResult') // Pastikan relasi screeningResult didefinisikan di model User
+            ->get();
+
+        // Hitung total ibu yang ditemukan
+        $totalMothers = $mothers->count();
+
+        // Jika tidak ada ibu ditemukan, kembalikan response dengan default
+        if ($totalMothers === 0) {
+            return response()->json([
+                'message' => 'Rata-rata skor skrining berhasil dihitung.',
+                'data' => [
+                    'total_mothers' => 0,  // Tidak ada ibu
+                    'average_score' => 0,  // Skor rata-rata default 0
+                    'category'      => '-' // Kategori default
+                ]
+            ]);
+        }
+
+        // Hitung total skor semua ibu (jika ibu belum punya hasil skrining, gunakan 0)
+        $totalScore = $mothers->sum(function ($mother) {
+            return $mother->screeningResult->score ?? 0;
+        });
+
+        // Hitung rata-rata skor skrining
+        $averageScore = $totalScore / $totalMothers;
+
+        // Ambil kategori screening berdasarkan rata-rata skor
+        $level = ScreeningLevel::whereNull('question_id') // Level umum (bukan spesifik pertanyaan)
+            ->where('min_score', '<=', $averageScore)   // Min skor ≤ rata-rata
+            ->where(function ($q) use ($averageScore) {
+                $q->where('max_score', '>=', $averageScore) // Max skor ≥ rata-rata
+                    ->orWhereNull('max_score');              // atau jika max_score tidak ditentukan
+            })
+            ->first(); // Ambil level pertama yang sesuai
+
+        // Ambil kategori, jika tidak ditemukan gunakan 'Tidak diketahui'
+        $category = $level?->category ?? 'Tidak diketahui';
+
+        // Kembalikan response JSON berisi total ibu, rata-rata skor, dan kategori
+        return response()->json([
+            'message' => 'Rata-rata skor skrining berhasil dihitung.',
+            'data' => [
+                'total_mothers' => $totalMothers,           // Jumlah ibu
+                'average_score' => round($averageScore, 2), // Rata-rata skor dibulatkan 2 desimal
+                'category'      => $category                // Kategori hasil skrining
+            ]
         ]);
     }
 }
